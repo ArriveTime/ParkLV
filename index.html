@@ -1,0 +1,427 @@
+HTML
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Park Fast. Park Free. ParkLV</title>
+    <!-- Leaflet Open-Source Mapping CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <style>
+        :root {
+            --bg-dark: #060814;
+            --panel-bg: rgba(18, 22, 43, 0.75);
+            --neon-cyan: #00f3ff;
+            --neon-magenta: #ff007f;
+            --vegas-gold: #ffd700;
+            --text-light: #ffffff;
+            --text-muted: #8fa0dd;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(0, 243, 255, 0.08) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(255, 0, 127, 0.05) 0px, transparent 50%);
+            color: var(--text-light);
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* Modern Floating Promo Banners */
+        .promo-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            padding: 15px 20px 5px 20px;
+            max-width: 1200px;
+            width: 100%;
+            margin: 0 auto;
+        }
+        @media (min-width: 768px) {
+            .promo-container { flex-direction: row; }
+        }
+
+        .modern-banner {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 20px;
+            border-radius: 14px;
+            text-decoration: none;
+            color: white;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .modern-banner::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent);
+            transform: translateX(-100%);
+            transition: 0.6s;
+        }
+        .modern-banner:hover::before { transform: translateX(100%); }
+
+        #cab0-banner:hover {
+            border-color: var(--neon-cyan);
+            box-shadow: 0 0 15px rgba(0, 243, 255, 0.25);
+            background: rgba(0, 243, 255, 0.05);
+        }
+        #arrivetime-banner:hover {
+            border-color: var(--vegas-gold);
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.25);
+            background: rgba(255, 215, 0, 0.05);
+        }
+
+        .banner-text h5 {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 2px;
+        }
+        #cab0-banner h5 { color: var(--neon-cyan); }
+        #arrivetime-banner h5 { color: var(--vegas-gold); }
+        
+        .banner-text p {
+            font-size: 0.9rem;
+            font-weight: 500;
+            color: rgba(255,255,255,0.85);
+        }
+
+        .banner-arrow {
+            font-size: 1.2rem;
+            transition: transform 0.2s;
+        }
+        .modern-banner:hover .banner-arrow { transform: translateX(4px); }
+
+        /* Las Vegas Neon Header Layout */
+        header {
+            text-align: center;
+            padding: 25px 20px 20px 20px;
+        }
+
+        .logo-title {
+            font-size: 3rem;
+            font-weight: 900;
+            letter-spacing: -1.5px;
+            text-transform: uppercase;
+            background: linear-gradient(135deg, #fff 30%, var(--vegas-gold) 70%, var(--neon-magenta));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 30px rgba(255, 215, 0, 0.1);
+        }
+        @media (min-width: 768px) { .logo-title { font-size: 3.5rem; } }
+
+        /* App Main Grid Container */
+        .main-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 0 20px 40px 20px;
+            max-width: 1200px;
+            width: 100%;
+            margin: 0 auto;
+            gap: 25px;
+        }
+
+        .app-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            width: 100%;
+            gap: 25px;
+        }
+        @media (min-width: 992px) {
+            .app-grid { grid-template-columns: 1fr 380px; }
+        }
+
+        /* Glowing Map Component Container */
+        .map-box {
+            background: var(--panel-bg);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            height: 500px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.6), 0 0 40px rgba(0, 243, 255, 0.03);
+        }
+        #map { height: 100%; width: 100%; }
+
+        /* Glassmorphic Side Panel Layout */
+        .panel {
+            background: var(--panel-bg);
+            border-radius: 20px;
+            padding: 25px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(12px);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.6);
+        }
+
+        /* Form Inputs Style Configuration */
+        .input-group {
+            margin-bottom: 16px;
+            position: relative;
+        }
+        .input-group label {
+            display: block;
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+        }
+        .input-field {
+            width: 100%;
+            background: rgba(6, 8, 20, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 14px 16px;
+            border-radius: 10px;
+            color: white;
+            font-size: 0.95rem;
+            transition: all 0.2s ease;
+        }
+        .input-field:focus {
+            outline: none;
+            border-color: var(--neon-cyan);
+            box-shadow: 0 0 10px rgba(0, 243, 255, 0.2);
+            background: rgba(6, 8, 20, 0.9);
+        }
+
+        /* Action Buttons */
+        .btn-action {
+            background: linear-gradient(135deg, var(--vegas-gold) 0%, #c39627 100%);
+            color: #000;
+            border: none;
+            padding: 16px;
+            border-radius: 12px;
+            font-size: 1.05rem;
+            font-weight: 800;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
+            box-shadow: 0 4px 20px rgba(255, 215, 0, 0.2);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: 5px;
+        }
+        .btn-action:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 25px rgba(255, 215, 0, 0.35);
+            background: linear-gradient(135deg, #fff 0%, var(--vegas-gold) 100%);
+        }
+
+        /* Real-Time Log Layout Styles */
+        .status-container {
+            margin-top: 22px;
+        }
+        .status-title {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            letter-spacing: 1.5px;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+        #output-log {
+            background: rgba(6, 8, 20, 0.4);
+            border-radius: 10px;
+            padding: 12px;
+            font-size: 0.85rem;
+            border: 1px solid rgba(255,255,255,0.03);
+            color: rgba(255,255,255,0.75);
+            line-height: 1.4;
+        }
+
+        /* Option Recommendations Panel Cards */
+        .status-card {
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 10px;
+            padding: 14px;
+            margin-bottom: 10px;
+            border: 1px solid rgba(255,255,255,0.03);
+            border-left: 4px solid var(--neon-cyan);
+            transition: transform 0.2s;
+        }
+        .status-card:hover { transform: translateX(3px); }
+        .status-card.free { border-left-color: var(--vegas-gold); }
+        .status-card h4 { font-size: 0.95rem; margin-bottom: 3px; font-weight: 600; }
+        .status-card p { font-size: 0.85rem; color: var(--text-muted); }
+    </style>
+</head>
+<body>
+
+    <!-- Modern Floating Ad Banners Split Layer -->
+    <div class="promo-container">
+        <!-- Cab0.com Modern Ad Banner -->
+        <a href="https://Cab0.com" target="_blank" class="modern-banner" id="cab0-banner">
+            <div class="banner-text">
+                <h5>Network Spotlight</h5>
+                <p>Every Ride, Every Delivery, One Search — Cab0.com</p>
+            </div>
+            <div class="banner-arrow">&rarr;</div>
+        </a>
+
+        <!-- ArriveTime.com Modern Ad Banner -->
+        <a href="https://ArriveTime.com" target="_blank" class="modern-banner" id="arrivetime-banner">
+            <div class="banner-text">
+                <h5>Smart ETA Tracker</h5>
+                <p>Track arrival clearance times live via ArriveTime.com</p>
+            </div>
+            <div class="banner-arrow">&rarr;</div>
+        </a>
+    </div>
+
+    <!-- Las Vegas Signature Brand Headline -->
+    <header>
+        <h1 class="logo-title">Park Fast. Park Free. ParkLV</h1>
+    </header>
+
+    <div class="main-container">
+        <div class="app-grid">
+            <!-- Map Canvas Window Framework -->
+            <div class="map-box">
+                <div id="map"></div>
+            </div>
+
+            <!-- Dashboard App Interaction Control Panel -->
+            <div class="panel">
+                <div>
+                    <!-- Interactive Routing Fields -->
+                    <div class="input-group">
+                        <label for="start-loc">1. Your Location</label>
+                        <input type="text" id="start-loc" class="input-field" placeholder="Using GPS / Current Location..." />
+                    </div>
+
+                    <div class="input-group">
+                        <label for="dest-loc">2. Destination</label>
+                        <input type="text" id="dest-loc" class="input-field" placeholder="e.g., Caesars Palace, Fremont St..." value="The Cosmopolitan of Las Vegas" />
+                    </div>
+
+                    <button class="btn-action" onclick="locateAndRoute()">Find Closest Free Spot</button>
+                    
+                    <div class="status-container">
+                        <div class="status-title">Live Tracking Engine</div>
+                        <div id="output-log">
+                            Enter coordinates or click above. Safe, unmetered parking logic requires no downloads.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="status-container" style="margin-top: 15px;">
+                    <div class="status-title">Closest Free Options Found</div>
+                    <div class="status-card free">
+                        <h4>Fremont St. Smart Structure</h4>
+                        <p>Distance: 0.2 mi | Open Slots: 14</p>
+                    </div>
+                    <div class="status-card">
+                        <h4>Arts District Open Lot</h4>
+                        <p>Distance: 0.5 mi | Open Slots: 8</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- OpenStreetMap / Leaflet Map Engines Setup -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        // Set standard center map focal coordinates onto Las Vegas Strip Strip area
+        let map = L.map('map').setView([36.1147, -115.1728], 14);
+        
+        // Custom dark premium map layer tiles to match night glow strip look
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; OpenStreetMap contributors &copy; CARTO'
+        }).addTo(map);
+
+        // Core coordinates tracking public unmetered open zones around town
+        const mockFreeParkingSpots = [
+            { name: "The Cosmopolitan Free Structure Zone", lat: 36.1098, lng: -115.1740, slots: 11 },
+            { name: "Bellagio Area Open Access Lot", lat: 36.1126, lng: -115.1765, slots: 6 },
+            { name: "Fremont St. Smart Structure", lat: 36.1710, lng: -115.1410, slots: 14 }
+        ];
+
+        // Append glow points visually straight into map frame canvas layout layers
+        mockFreeParkingSpots.forEach(spot => {
+            L.circleMarker([spot.lat, spot.lng], {
+                color: '#ffd700',
+                fillColor: '#ffd700',
+                fillOpacity: 0.5,
+                radius: 9
+            }).addTo(map).bindPopup(`<b>${spot.name}</b><br>Available Free Spaces: ${spot.slots}`);
+        });
+
+        // HTML5 Geolocation execution algorithms pipeline tracking script loop
+        function locateAndRoute() {
+            const logger = document.getElementById('output-log');
+            const destVal = document.getElementById('dest-loc').value || "Destination";
+            
+            if (!navigator.geolocation) {
+                logger.innerHTML = "❌ Geolocation tracking parameters unsupported by this device network layer context.";
+                return;
+            }
+
+            logger.innerHTML = `🔄 Initializing fast-track routing mapping calculation matrices for your route to ${destVal}...`;
+
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const userLat = position.coords.latitude;
+                    const userLng = position.coords.longitude;
+
+                    map.setView([userLat, userLng], 15);
+
+                    // Add custom point directly over device positioning frame map matrix array
+                    L.marker([userLat, userLng]).addTo(map)
+                        .bindPopup('<b>Your Current Location Target</b>').openPopup();
+
+                    let closestSpot = mockFreeParkingSpots[0];
+                    let minDistance = Infinity;
+
+                    mockFreeParkingSpots.forEach(spot => {
+                        let d = Math.sqrt(Math.pow(spot.lat - userLat, 2) + Math.pow(spot.lng - userLng, 2));
+                        if (d < minDistance) {
+                            minDistance = d;
+                            closestSpot = spot;
+                        }
+                    });
+
+                    logger.innerHTML = `⚡ <b>Fast Route Aquired!</b><br>Routing vector to: <b>${closestSpot.name}</b><br>Enjoy your arrival in Las Vegas!`;
+                    
+                    // Draw clean neon path tracking route array sequence parameters line directly overlaying canvas
+                    let polyline = L.polyline([
+                        [userLat, userLng],
+                        [closestSpot.lat, closestSpot.lng]
+                    ], { color: '#00f3ff', weight: 4, dashArray: '6, 8' }).addTo(map);
+                    
+                    map.fitBounds(polyline.getBounds());
+                },
+                (error) => {
+                    // Fallback visual loop path if location access is blocked
+                    logger.innerHTML = `ℹ️ GPS permissions skipped. Tracking paths from Strip core towards <b>${destVal}</b> options natively instead.`;
+                    map.setView([36.1147, -115.1728], 14);
+                },
+                { enableHighAccuracy: true, timeout: 8000 }
+            );
+        }
+    </script>
+</body>
+</html>
