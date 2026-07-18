@@ -1,4 +1,3 @@
-HTML
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -37,83 +36,10 @@ HTML
             overflow-x: hidden;
         }
 
-        /* Modern Floating Promo Banners */
-        .promo-container {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            padding: 15px 20px 5px 20px;
-            max-width: 1200px;
-            width: 100%;
-            margin: 0 auto;
-        }
-        @media (min-width: 768px) {
-            .promo-container { flex-direction: row; }
-        }
-
-        .modern-banner {
-            flex: 1;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 14px 20px;
-            border-radius: 14px;
-            text-decoration: none;
-            color: white;
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            backdrop-filter: blur(10px);
-            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
-            position: relative;
-            overflow: hidden;
-        }
-        
-        .modern-banner::before {
-            content: '';
-            position: absolute;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent);
-            transform: translateX(-100%);
-            transition: 0.6s;
-        }
-        .modern-banner:hover::before { transform: translateX(100%); }
-
-        #cab0-banner:hover {
-            border-color: var(--neon-cyan);
-            box-shadow: 0 0 15px rgba(0, 243, 255, 0.25);
-            background: rgba(0, 243, 255, 0.05);
-        }
-        #arrivetime-banner:hover {
-            border-color: var(--vegas-gold);
-            box-shadow: 0 0 15px rgba(255, 215, 0, 0.25);
-            background: rgba(255, 215, 0, 0.05);
-        }
-
-        .banner-text h5 {
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            margin-bottom: 2px;
-        }
-        #cab0-banner h5 { color: var(--neon-cyan); }
-        #arrivetime-banner h5 { color: var(--vegas-gold); }
-        
-        .banner-text p {
-            font-size: 0.9rem;
-            font-weight: 500;
-            color: rgba(255,255,255,0.85);
-        }
-
-        .banner-arrow {
-            font-size: 1.2rem;
-            transition: transform 0.2s;
-        }
-        .modern-banner:hover .banner-arrow { transform: translateX(4px); }
-
         /* Las Vegas Neon Header Layout */
         header {
             text-align: center;
-            padding: 25px 20px 20px 20px;
+            padding: 40px 20px 20px 20px;
         }
 
         .logo-title {
@@ -270,28 +196,7 @@ HTML
 </head>
 <body>
 
-    <!-- Modern Floating Ad Banners Split Layer -->
-    <div class="promo-container">
-        <!-- Cab0.com Modern Ad Banner -->
-        <a href="https://Cab0.com" target="_blank" class="modern-banner" id="cab0-banner">
-            <div class="banner-text">
-                <h5>Network Spotlight</h5>
-                <p>Every Ride, Every Delivery, One Search — Cab0.com</p>
-            </div>
-            <div class="banner-arrow">&rarr;</div>
-        </a>
-
-        <!-- ArriveTime.com Modern Ad Banner -->
-        <a href="https://ArriveTime.com" target="_blank" class="modern-banner" id="arrivetime-banner">
-            <div class="banner-text">
-                <h5>Smart ETA Tracker</h5>
-                <p>Track arrival clearance times live via ArriveTime.com</p>
-            </div>
-            <div class="banner-arrow">&rarr;</div>
-        </a>
-    </div>
-
-    <!-- Las Vegas Signature Brand Headline -->
+    <!-- Las Vegas Signature Brand Headline Only -->
     <header>
         <h1 class="logo-title">Park Fast. Park Free. ParkLV</h1>
     </header>
@@ -345,22 +250,18 @@ HTML
     <!-- OpenStreetMap / Leaflet Map Engines Setup -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        // Set standard center map focal coordinates onto Las Vegas Strip Strip area
         let map = L.map('map').setView([36.1147, -115.1728], 14);
         
-        // Custom dark premium map layer tiles to match night glow strip look
         L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
             attribution: '&copy; OpenStreetMap contributors &copy; CARTO'
         }).addTo(map);
 
-        // Core coordinates tracking public unmetered open zones around town
         const mockFreeParkingSpots = [
             { name: "The Cosmopolitan Free Structure Zone", lat: 36.1098, lng: -115.1740, slots: 11 },
             { name: "Bellagio Area Open Access Lot", lat: 36.1126, lng: -115.1765, slots: 6 },
             { name: "Fremont St. Smart Structure", lat: 36.1710, lng: -115.1410, slots: 14 }
         ];
 
-        // Append glow points visually straight into map frame canvas layout layers
         mockFreeParkingSpots.forEach(spot => {
             L.circleMarker([spot.lat, spot.lng], {
                 color: '#ffd700',
@@ -370,13 +271,12 @@ HTML
             }).addTo(map).bindPopup(`<b>${spot.name}</b><br>Available Free Spaces: ${spot.slots}`);
         });
 
-        // HTML5 Geolocation execution algorithms pipeline tracking script loop
         function locateAndRoute() {
             const logger = document.getElementById('output-log');
             const destVal = document.getElementById('dest-loc').value || "Destination";
             
             if (!navigator.geolocation) {
-                logger.innerHTML = "❌ Geolocation tracking parameters unsupported by this device network layer context.";
+                logger.innerHTML = "❌ Geolocation tracking parameters unsupported by this device browser.";
                 return;
             }
 
@@ -389,7 +289,6 @@ HTML
 
                     map.setView([userLat, userLng], 15);
 
-                    // Add custom point directly over device positioning frame map matrix array
                     L.marker([userLat, userLng]).addTo(map)
                         .bindPopup('<b>Your Current Location Target</b>').openPopup();
 
@@ -404,9 +303,8 @@ HTML
                         }
                     });
 
-                    logger.innerHTML = `⚡ <b>Fast Route Aquired!</b><br>Routing vector to: <b>${closestSpot.name}</b><br>Enjoy your arrival in Las Vegas!`;
+                    logger.innerHTML = `⚡ <b>Fast Route Acquired!</b><br>Routing vector to: <b>${closestSpot.name}</b><br>Enjoy your arrival in Las Vegas!`;
                     
-                    // Draw clean neon path tracking route array sequence parameters line directly overlaying canvas
                     let polyline = L.polyline([
                         [userLat, userLng],
                         [closestSpot.lat, closestSpot.lng]
@@ -415,7 +313,6 @@ HTML
                     map.fitBounds(polyline.getBounds());
                 },
                 (error) => {
-                    // Fallback visual loop path if location access is blocked
                     logger.innerHTML = `ℹ️ GPS permissions skipped. Tracking paths from Strip core towards <b>${destVal}</b> options natively instead.`;
                     map.setView([36.1147, -115.1728], 14);
                 },
