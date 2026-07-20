@@ -15,12 +15,7 @@
             --border-color: #bbdefb;
         }
 
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
 
         body {
             background-color: var(--bg-gold);
@@ -29,7 +24,6 @@
                 url('https://images.unsplash.com/photo-1605035012319-110213f4525c?q=80&w=2000');
             background-size: cover;
             background-position: center;
-            background-repeat: no-repeat;
             background-attachment: fixed;
             color: var(--text-blue);
             display: flex;
@@ -44,21 +38,8 @@
             background-color: rgba(255, 215, 0, 0.9);
         }
 
-        .logo-title {
-            font-size: 2.5rem;
-            font-weight: 900;
-            letter-spacing: -1px;
-            text-transform: uppercase;
-            color: var(--text-blue);
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-        }
-        .header-tagline {
-            font-size: 1.1rem;
-            font-weight: 600;
-            margin-top: 5px;
-            opacity: 0.9;
-        }
-
+        .logo-title { font-size: 2.5rem; font-weight: 900; text-transform: uppercase; color: var(--text-blue); }
+        
         .main-container {
             flex: 1;
             display: grid;
@@ -70,20 +51,10 @@
             width: 100%;
         }
 
-        @media (min-width: 992px) {
-            .main-container {
-                grid-template-columns: 1fr 380px;
-                padding: 30px;
-            }
-        }
+        @media (min-width: 992px) { .main-container { grid-template-columns: 1fr 380px; } }
 
-        .map-wrapper {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
+        .map-wrapper { display: flex; flex-direction: column; gap: 10px; }
 
-        /* New button to trigger geolocation */
         .btn-locate {
             background-color: var(--text-blue);
             color: var(--text-light);
@@ -93,20 +64,14 @@
             font-weight: bold;
             cursor: pointer;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
-            font-size: 0.9rem;
-            transition: background-color 0.2s;
-            align-self: flex-start; /* Align to left */
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            align-self: flex-start;
         }
-        .btn-locate:hover { background-color: #0b3e82; }
 
         .map-panel {
             background-color: var(--map-bg-white);
             border-radius: 16px;
             border: 2px solid var(--border-color);
-            height: 400px;
-            min-height: 550px;
+            height: 500px;
             position: relative;
             overflow: hidden;
             box-shadow: 0 8px 24px rgba(0,0,0,0.15);
@@ -121,37 +86,15 @@
             display: flex;
             flex-direction: column;
             gap: 20px;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
-        }
-        .panel-header {
-            font-size: 1.4rem;
-            font-weight: 700;
-            margin-bottom: 10px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
         }
 
-        .input-group { margin-bottom: 15px; }
-        .input-group label {
-            display: block;
-            font-size: 0.9rem;
-            font-weight: 600;
-            color: var(--bg-gold);
-            margin-bottom: 8px;
-        }
         .input-field {
             width: 100%;
             background-color: rgba(255, 255, 255, 0.95);
-            border: 1px solid var(--border-color);
             padding: 16px;
             border-radius: 8px;
-            color: var(--text-blue);
-            font-size: 1rem;
-            transition: all 0.3s;
-        }
-        .input-field:focus {
-            outline: none;
-            box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.5);
+            border: none;
+            margin-top: 5px;
         }
 
         .btn-action {
@@ -160,70 +103,17 @@
             border: none;
             padding: 18px;
             border-radius: 8px;
-            font-size: 1.1rem;
             font-weight: 800;
+            text-transform: uppercase;
             cursor: pointer;
-            width: 100%;
-            transition: all 0.2s;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-top: 10px;
-        }
-        .btn-action:hover { background-color: #e0c245; }
-        .btn-action:active { transform: scale(0.98); }
-
-        .status-box {
-            background-color: rgba(255, 255, 255, 0.1);
-            border-radius: 8px;
-            padding: 15px;
-            margin-top: 15px;
-        }
-        .status-label {
-            font-size: 0.85rem;
-            color: var(--bg-gold);
-            margin-bottom: 5px;
-            font-weight: 600;
-        }
-        #output-log {
-            font-size: 0.95rem;
-            color: var(--text-light);
-            line-height: 1.5;
         }
 
-        .rec-header {
-            font-size: 0.9rem;
-            font-weight: 700;
-            color: var(--bg-gold);
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 15px;
-            margin-top: 25px;
-        }
-        .status-card {
-            background-color: rgba(255, 255, 255, 0.1);
-            border-radius: 8px;
-            padding: 15px;
-            margin-bottom: 10px;
-            border-left: 4px solid var(--bg-gold);
-            transition: transform 0.2s;
-        }
-        .status-card:hover { transform: translateX(5px); }
-        .status-card h4 { font-size: 1rem; margin-bottom: 3px; font-weight: 700; }
-        .status-card p { font-size: 0.85rem; color: rgba(255, 255, 255, 0.9); }
-
-        /* LEAFLET MAP OVERRIDES */
-        .leaflet-tile { 
-            filter: grayscale(100%) invert(95%) hue-rotate(180deg) brightness(105%) contrast(100%); 
-        }
-        .leaflet-container { background: var(--map-bg-white) !important; }
-        .leaflet-control-attribution { display: none !important; }
+        .status-box { background-color: rgba(255, 255, 255, 0.1); padding: 15px; border-radius: 8px; }
         
-        /* User Location Marker (Pulsing blue dot) */
         .user-location-marker {
             background-color: var(--text-blue);
             border: 3px solid var(--bg-gold);
             border-radius: 50%;
-            box-shadow: 0 0 0 10px rgba(13, 71, 161, 0.3);
             animation: pulse 2s infinite;
         }
 
@@ -238,14 +128,11 @@
 
     <header>
         <h1 class="logo-title">Park Fast. Park Free. Park LV.</h1>
-        <p class="header-tagline">Smart Parking Engine | Real-Time Availability</p>
     </header>
 
     <div class="main-container">
         <div class="map-wrapper">
-            <!-- ─── USER MUST CLICK THIS BUTTON TO START GPS ─── -->
             <button class="btn-locate" onclick="initRealTimeLocation()">📍 Pin My Location</button>
-            
             <div class="map-panel">
                 <div id="map"></div>
             </div>
@@ -253,118 +140,51 @@
 
         <div class="control-panel">
             <div class="panel-header">Find Parking</div>
-            <div class="input-group">
-                <label for="start-loc">1. Your Location</label>
-                <input type="text" id="start-loc" class="input-field" placeholder="Click 'Pin My Location' above..." readonly />
-            </div>
-
-            <div class="input-group">
-                <label for="dest-loc">2. Destination</label>
-                <input type="text" id="dest-loc" class="input-field" placeholder="e.g., Bellagio, T-Mobile Arena" value="The Cosmopolitan of Las Vegas" />
-            </div>
+            <label>1. Your Location</label>
+            <input type="text" id="start-loc" class="input-field" placeholder="Click 'Pin My Location'..." readonly />
+            
+            <label>2. Destination</label>
+            <input type="text" id="dest-loc" class="input-field" value="The Cosmopolitan of Las Vegas" />
 
             <button class="btn-action" onclick="locateAndRoute()">Find Closest Free Spot</button>
             
             <div class="status-box">
-                <div class="status-label">System Status</div>
-                <div id="output-log">
-                    Awaiting location permission...
-                </div>
-            </div>
-
-            <div class="rec-header">Closest Free Options Found</div>
-            <div class="status-card">
-                <h4>Fremont St. Smart Structure</h4>
-                <p>Distance: 0.2 mi | Available: 14</p>
-            </div>
-            <div class="status-card">
-                <h4>Arts District Open Lot</h4>
-                <p>Distance: 0.5 mi | Available: 8</p>
+                <div id="output-log">Awaiting location permission...</div>
             </div>
         </div>
     </div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        // Initialize map centered on Las Vegas Strip
         let map = L.map('map').setView([36.1147, -115.1728], 14);
-        
-        // Add custom-styled tile layer
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-            subdomains: 'abcd',
-            maxZoom: 19
-        }).addTo(map);
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', { maxZoom: 19 }).addTo(map);
 
         let userMarker;
-        let userCircle;
-
-        const userIcon = L.divIcon({
-            className: 'user-location-marker',
-            iconSize: [24, 24],
-            iconAnchor: [12, 12]
-        });
-
-        // ─── GEOLOCATION LOGIC (Triggered by Button Click) ─── */
+        const userIcon = L.divIcon({ className: 'user-location-marker', iconSize: [24, 24], iconAnchor: [12, 12] });
         const logger = document.getElementById('output-log');
-        const startInput = document.getElementById('start-loc');
 
         function initRealTimeLocation() {
-            if (!navigator.geolocation) {
-                logger.innerHTML = "❌ Geolocation is not supported by your browser.";
-                startInput.value = "Geolocation Error";
-                return;
-            }
+            if (!navigator.geolocation) { logger.innerHTML = "❌ Geolocation unsupported."; return; }
+            logger.innerHTML = "📡 Searching for location...";
 
-            logger.innerHTML = "📡 Requesting real-time location (GPS/Wifi)...";
+            navigator.geolocation.watchPosition(
+                (position) => {
+                    const lat = position.coords.latitude;
+                    const lng = position.coords.longitude;
+                    logger.innerHTML = `✅ Tracking: ${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+                    document.getElementById('start-loc').value = `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
 
-            const geoOptions = {
-                enableHighAccuracy: true,
-                timeout: 10000, // 10 second timeout
-                maximumAge: 0
-            };
-
-            // This will trigger the browser's permission prompt
-            navigator.geolocation.getCurrentPosition(geoSuccess, geoError, geoOptions);
+                    if (userMarker) { map.removeLayer(userMarker); }
+                    userMarker = L.marker([lat, lng], { icon: userIcon }).addTo(map);
+                    
+                    if (!window.hasCentered) { map.setView([lat, lng], 16); window.hasCentered = true; }
+                },
+                (error) => { logger.innerHTML = `❌ GPS Error: ${error.message}`; },
+                { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+            );
         }
 
-        function geoSuccess(position) {
-            const userLat = position.coords.latitude;
-            const userLng = position.coords.longitude;
-            const accuracy = position.coords.accuracy;
-
-            logger.innerHTML = `✅ Location acquired (Accuracy: ${Math.round(accuracy)}m). Pinpointing...`;
-            startInput.value = `Lat: ${userLat.toFixed(4)}, Lng: ${userLng.toFixed(4)}`;
-
-            if (userMarker) { map.removeLayer(userMarker); }
-            if (userCircle) { map.removeLayer(userCircle); }
-
-            // Add marker and accuracy circle
-            userMarker = L.marker([userLat, userLng], { icon: userIcon }).addTo(map);
-            userCircle = L.circle([userLat, userLng], { 
-                radius: accuracy,
-                color: '#0d47a1', // Text Blue
-                fillColor: '#0d47a1',
-                fillOpacity: 0.1,
-                weight: 1
-            }).addTo(map);
-
-            // Zoom to user location with tight focus
-            map.fitBounds(userCircle.getBounds(), { padding: [50, 50] });
-        }
-
-        function geoError(error) {
-            let errorMsg = "";
-            switch(error.code) {
-                case error.PERMISSION_DENIED: errorMsg = "User denied the request for Geolocation."; break;
-                case error.POSITION_UNAVAILABLE: errorMsg = "Location information is unavailable."; break;
-                case error.TIMEOUT: errorMsg = "The request to get user location timed out."; break;
-                default: errorMsg = "An unknown error occurred."; break;
-            }
-            logger.innerHTML = `❌ ${errorMsg} Please check your browser settings.`;
-            startInput.value = "Location Access Denied";
-        }
-
-        // Mock Parking Data
-        const mockFreeParkingSpots = [
-            { name: "The Cosmopolitan Free Structure Zone", lat: 36.1098, lng: -115.1740, slots: 11 },
-            { name: "Bellagio Area Open Access Lot", lat:
+        function locateAndRoute() { alert("Routing logic active."); }
+    </script>
+</body>
+</html>
