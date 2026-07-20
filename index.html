@@ -3,58 +3,337 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ParkLV.com | Live</title>
+    <title>ParkLV | Smart Parking | Real-Time Availability</title>
+    <!-- Leaflet Open-Source Mapping CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
-        body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; }
-        
-        /* THE PICTURE IS THE ENTIRE PAGE */
-        .hero-background {
-            height: 100vh;
-            width: 100vw;
-            background: url('https://i.imgur.com/your_uploaded_image_id.png') no-repeat center center fixed; /* UPLOAD WOW_3.png AND REPLACE THIS URL */
+        :root {
+            /* ─── PROFESSIONAL DARK THEME (High Contrast) ─── */
+            --bg-dark: #0a0c19;
+            --panel-bg: #14182b; /* Solid, non-transparent panel for readability */
+            --accent-gold: #d4af37; /* Professional, readable gold */
+            --accent-cyan: #00e5ff; /* Crisp cyan for contrast */
+            --text-primary: #ffffff;
+            --text-secondary: #b0bec5;
+            --border-color: #37474f;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            /* ─── NEW, OPTIMIZED BACKGROUND GRAPHIC ─── */
+            /* This background is designed to provide context without cluttering the foreground UI. */
+            background-image: 
+                linear-gradient(to bottom, rgba(10, 12, 25, 0.7), rgba(10, 12, 25, 0.95)),
+                url('https://images.unsplash.com/photo-1605035012319-110213f4525c?q=80&w=2000');
             background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            color: var(--text-primary);
             display: flex;
             flex-direction: column;
-            justify-content: flex-end;
+            min-height: 100vh;
+        }
+
+        /* ─── PROFESSIONAL HEADER (Clean) ─── */
+        header {
+            text-align: left;
+            padding: 25px 40px;
+            border-bottom: 1px solid var(--border-color);
+            background-color: rgba(10, 12, 25, 0.9);
+            display: flex;
+            justify-content: space-between;
             align-items: center;
         }
 
-        /* FLOATING CONTROL PANEL */
-        .ui-panel {
-            background: rgba(18, 22, 43, 0.7);
-            backdrop-filter: blur(15px);
-            padding: 30px;
-            border-radius: 20px;
-            border: 1px solid rgba(0, 243, 255, 0.3);
-            width: 90%;
-            max-width: 400px;
-            margin-bottom: 50px;
-            color: white;
-            text-align: center;
+        .logo-title {
+            font-size: 1.8rem;
+            font-weight: 900;
+            letter-spacing: -0.5px;
+            text-transform: uppercase;
+            color: var(--accent-gold);
+            text-shadow: 0 0 10px rgba(212, 175, 55, 0.3);
+        }
+        .header-tagline {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
         }
 
-        .btn-action {
-            background: var(--vegas-gold, #ffd700);
-            color: black;
-            border: none;
-            padding: 15px 30px;
-            border-radius: 10px;
-            font-weight: bold;
+        /* ─── MAIN APPLICATION GRID (Split-Screen Layout) ─── */
+        .main-container {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 1fr; /* Default to stacked for mobile */
+            gap: 30px;
+            padding: 30px;
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        @media (min-width: 992px) {
+            .main-container {
+                grid-template-columns: 1fr 350px; /* Map on left, controls on right */
+                padding: 40px;
+            }
+        }
+
+        /* ─── MAP COMPONENT (Clean) ─── */
+        .map-panel {
+            background-color: var(--panel-bg);
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            height: 400px; /* Mobile height */
+            min-height: 500px; /* Desktop height */
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        #map { height: 100%; width: 100%; }
+
+        /* ─── CONTROL PANEL (High Readability) ─── */
+        .control-panel {
+            background-color: var(--panel-bg);
+            border-radius: 16px;
+            padding: 30px;
+            border: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+        .panel-header {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 10px;
             text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Form Inputs Style (High Contrast) */
+        .input-group { margin-bottom: 15px; }
+        .input-group label {
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--accent-cyan);
+            margin-bottom: 8px;
+        }
+        .input-field {
+            width: 100%;
+            background-color: #0a0c19; /* Darkest background */
+            border: 1px solid var(--border-color);
+            padding: 15px;
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+        .input-field:focus {
+            outline: none;
+            border-color: var(--accent-gold);
+        }
+
+        /* Action Button (High Visibility) */
+        .btn-action {
+            background-color: var(--accent-gold);
+            color: #0a0c19;
+            border: none;
+            padding: 18px;
+            border-radius: 8px;
+            font-size: 1.1rem;
+            font-weight: 800;
             cursor: pointer;
+            width: 100%;
+            transition: background-color 0.3s, transform 0.1s;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: 10px;
+        }
+        .btn-action:hover { background-color: #e0c245; }
+        .btn-action:active { transform: scale(0.98); }
+
+        /* ─── STATUS & LOGGING (Cleaned up) ─── */
+        .status-box {
+            background-color: rgba(10, 12, 25, 0.5);
+            border-radius: 8px;
+            padding: 15px;
             margin-top: 15px;
         }
+        .status-label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-bottom: 5px;
+        }
+        #output-log {
+            font-size: 0.9rem;
+            color: var(--text-primary);
+            line-height: 1.5;
+        }
+
+        /* Option Recommendations Cards (Professional) */
+        .rec-header {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 15px;
+            margin-top: 25px;
+        }
+        .status-card {
+            background-color: #0a0c19;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 10px;
+            border: 1px solid var(--border-color);
+            border-left: 4px solid var(--accent-gold);
+            transition: transform 0.2s;
+        }
+        .status-card:hover { transform: translateX(5px); }
+        .status-card.free { border-left-color: var(--accent-cyan); }
+        .status-card h4 { font-size: 1rem; margin-bottom: 3px; font-weight: 700; }
+        .status-card p { font-size: 0.85rem; color: var(--text-secondary); }
+
+        /* ─── LEAFLET MAP OVERRIDES (Dark Theme) ─── */
+        .leaflet-tile { filter: grayscale(100%) invert(90%) brightness(90%) contrast(90%); }
+        .leaflet-container { background: #14182b !important; }
+        .leaflet-popup-content-wrapper, .leaflet-popup-tip { background: #14182b; color: #fff; }
     </style>
 </head>
 <body>
 
-    <div class="hero-background">
-        <div class="ui-panel">
-            <h3>Find Your Free Spot</h3>
-            <input type="text" placeholder="Destination..." style="width:100%; padding: 10px; border-radius: 5px;">
-            <button class="btn-action">Start Navigation</button>
+    <header>
+        <div>
+            <h1 class="logo-title">ParkLV.com</h1>
+            <p class="header-tagline">Smart Parking • Real-Time Availability</p>
+        </div>
+        <div style="font-size: 0.9rem; color: var(--text-secondary);">Welcome, Guest</div>
+    </header>
+
+    <div class="main-container">
+        <!-- Map Canvas Window Framework -->
+        <div class="map-panel">
+            <div id="map"></div>
+        </div>
+
+        <!-- Dashboard App Interaction Control Panel -->
+        <div class="control-panel">
+            <div class="panel-header">Find Parking</div>
+            
+            <!-- Interactive Routing Fields -->
+            <div class="input-group">
+                <label for="start-loc">1. Your Location</label>
+                <input type="text" id="start-loc" class="input-field" placeholder="Detecting GPS..." />
+            </div>
+
+            <div class="input-group">
+                <label for="dest-loc">2. Destination</label>
+                <input type="text" id="dest-loc" class="input-field" placeholder="e.g., Bellagio, T-Mobile Arena" value="The Cosmopolitan of Las Vegas" />
+            </div>
+
+            <button class="btn-action" onclick="locateAndRoute()">Find Closest Free Spot</button>
+            
+            <div class="status-box">
+                <div class="status-label">System Status</div>
+                <div id="output-log">
+                    Enter coordinates or click "Find Spot". No downloads required.
+                </div>
+            </div>
+
+            <!-- Closest Options Found -->
+            <div class="rec-header">Closest Free Options</div>
+            <div class="status-card free">
+                <h4>Fremont St. Smart Structure</h4>
+                <p>Distance: 0.2 mi | Available: 14</p>
+            </div>
+            <div class="status-card">
+                <h4>Arts District Open Lot</h4>
+                <p>Distance: 0.5 mi | Available: 8</p>
+            </div>
         </div>
     </div>
 
-</body>
-</html>
+    <!-- OpenStreetMap / Leaflet Map Engines Setup -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script>
+        // Initialize map centered on Las Vegas Strip
+        let map = L.map('map').setView([36.1147, -115.1728], 14);
+        
+        // Add a custom dark-themed tile layer
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; OpenStreetMap contributors &copy; CARTO'
+        }).addTo(map);
+
+        // Mock data for parking spots (This is the backend data structure)
+        const mockFreeParkingSpots = [
+            { name: "The Cosmopolitan Free Structure Zone", lat: 36.1098, lng: -115.1740, slots: 11 },
+            { name: "Bellagio Area Open Access Lot", lat: 36.1126, lng: -115.1765, slots: 6 },
+            { name: "Fremont St. Smart Structure", lat: 36.1710, lng: -115.1410, slots: 14 }
+        ];
+
+        // Add markers for mock spots
+        mockFreeParkingSpots.forEach(spot => {
+            L.circleMarker([spot.lat, spot.lng], {
+                color: '#00e5ff', // Accent Cyan
+                fillColor: '#00e5ff',
+                fillOpacity: 0.5,
+                radius: 10
+            }).addTo(map).bindPopup(`<b>${spot.name}</b><br>Available Free Spaces: ${spot.slots}`);
+        });
+
+        // Function to handle routing logic (This is the core functional logic)
+        function locateAndRoute() {
+            const logger = document.getElementById('output-log');
+            const destVal = document.getElementById('dest-loc').value || "Destination";
+            
+            if (!navigator.geolocation) {
+                logger.innerHTML = "❌ Geolocation parameters unsupported by this device browser.";
+                return;
+            }
+
+            logger.innerHTML = `🔄 Calculating vectors to ${destVal}...`;
+
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    const userLat = position.coords.latitude;
+                    const userLng = position.coords.longitude;
+
+                    // Recenter map on user
+                    map.setView([userLat, userLng], 15);
+
+                    // Add user location marker
+                    L.marker([userLat, userLng]).addTo(map)
+                        .bindPopup('<b>Your Location</b>').openPopup();
+
+                    // Find closest spot (Pure logic, no graphics needed here)
+                    let closestSpot = mockFreeParkingSpots[0];
+                    let minDistance = Infinity;
+
+                    mockFreeParkingSpots.forEach(spot => {
+                        let d = Math.sqrt(Math.pow(spot.lat - userLat, 2) + Math.pow(spot.lng - userLng, 2));
+                        if (d < minDistance) {
+                            minDistance = d;
+                            closestSpot = spot;
+                        }
+                    });
+
+                    logger.innerHTML = `⚡ <b>Fast Route Acquired!</b><br>Vectoring to: <b>${closestSpot.name}</b><br>Enjoy your arrival in Las Vegas!`;
+                    
+                    // Add polyline to visualize the route
+                    let polyline = L.polyline([
+                        [userLat, userLng],
+                        [closestSpot.lat, closestSpot.lng]
+                    ], { color: '#00e5ff', weight: 4, dashArray: '6, 8' }).addTo(map);
+                    
+                    map.fitBounds(polyline.getBounds());
+                },
+                (error) =>
