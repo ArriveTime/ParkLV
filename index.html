@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Park Fast. Park Free. Park LV.</title>
-    <!-- Leaflet Open-Source Mapping CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         :root {
@@ -53,8 +52,6 @@
 
         @media (min-width: 992px) { .main-container { grid-template-columns: 1fr 380px; } }
 
-        .map-wrapper { display: flex; flex-direction: column; gap: 10px; }
-
         .btn-locate {
             background-color: var(--text-blue);
             color: var(--text-light);
@@ -77,6 +74,12 @@
             box-shadow: 0 8px 24px rgba(0,0,0,0.15);
         }
         #map { height: 100%; width: 100%; }
+
+        /* ─── CUSTOM MAP LABEL COLOR ─── */
+        /* This filter targets the map tiles to make text and roads dark blue */
+        .leaflet-tile { 
+            filter: hue-rotate(180deg) saturate(2) brightness(0.8);
+        }
 
         .control-panel {
             background-color: var(--text-blue);
