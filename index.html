@@ -9,12 +9,14 @@
     <style>
         :root {
             --bg-dark: #060814;
-            --panel-bg: rgba(18, 22, 43, 0.75);
+            /* Highly transparent background for glassmorphism */
+            --panel-bg: rgba(18, 22, 43, 0.5); 
             --neon-cyan: #00f3ff;
             --neon-magenta: #ff007f;
             --vegas-gold: #ffd700;
             --text-light: #ffffff;
             --text-muted: #8fa0dd;
+            --hologram-border: rgba(0, 243, 255, 0.4);
         }
 
         * {
@@ -25,10 +27,17 @@
         }
 
         body {
+            /* ─── BACKGROUND INTEGRATION ─── */
             background-color: var(--bg-dark);
+            /* Replace with the URL of the Las Vegas Skyline image from WOW.png */
             background-image: 
-                radial-gradient(at 0% 0%, rgba(0, 243, 255, 0.08) 0px, transparent 50%),
-                radial-gradient(at 100% 100%, rgba(255, 0, 127, 0.05) 0px, transparent 50%);
+                linear-gradient(to bottom, rgba(6, 8, 20, 0.5), rgba(6, 8, 20, 0.8)),
+                url('https://images.unsplash.com/photo-1574077865666-61e72c82d212?q=80&w=2000');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed; /* Keeps the background static while scrolling hologram */
+            
             color: var(--text-light);
             display: flex;
             flex-direction: column;
@@ -36,101 +45,125 @@
             overflow-x: hidden;
         }
 
-        /* Las Vegas Neon Header Layout */
+        /* ─── MAIN HOLOGRAM CONTAINER ─── */
+        /* This replaces the old grid and is styled to look like the central hologram panel */
+        .main-hologram-panel {
+            margin: 80px auto 40px auto; /* Top margin creates space for header */
+            width: 90%;
+            max-width: 1200px;
+            background: var(--panel-bg);
+            border-radius: 24px;
+            border: 2px solid var(--hologram-border);
+            backdrop-filter: blur(20px); /* Stronger blur for glass effect */
+            box-shadow: 0 0 30px var(--neon-cyan), 0 0 60px rgba(0, 243, 255, 0.1);
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* Hologram Scanlines Effect */
+        .main-hologram-panel::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                0deg,
+                rgba(0, 0, 0, 0.15),
+                rgba(0, 0, 0, 0.15) 1px,
+                transparent 1px,
+                transparent 3px
+            );
+            pointer-events: none;
+            border-radius: 24px;
+            opacity: 0.5;
+        }
+
+        /* ─── HEADER (Now inside the hologram) ─── */
         header {
             text-align: center;
-            padding: 40px 20px 20px 20px;
         }
 
         .logo-title {
-            font-size: 3rem;
+            font-size: 3.5rem;
             font-weight: 900;
-            letter-spacing: -1.5px;
+            letter-spacing: -1px;
             text-transform: uppercase;
-            background: linear-gradient(135deg, #fff 30%, var(--vegas-gold) 70%, var(--neon-magenta));
+            background: linear-gradient(135deg, #fff 40%, var(--vegas-gold) 70%, var(--neon-cyan));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            text-shadow: 0 0 30px rgba(255, 215, 0, 0.1);
+            text-shadow: 0 0 20px var(--neon-cyan), 0 0 40px var(--vegas-gold);
+            margin-bottom: 10px;
         }
-        @media (min-width: 768px) { .logo-title { font-size: 3.5rem; } }
-
-        /* App Main Grid Container */
-        .main-container {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 0 20px 40px 20px;
-            max-width: 1200px;
-            width: 100%;
-            margin: 0 auto;
-            gap: 25px;
+        .header-sub {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-weight: 600;
         }
 
-        .app-grid {
+        /* ─── HOLOGRAM INTERNAL LAYOUT (Map + Controls) ─── */
+        .hologram-layout {
             display: grid;
             grid-template-columns: 1fr;
-            width: 100%;
-            gap: 25px;
+            gap: 30px;
         }
         @media (min-width: 992px) {
-            .app-grid { grid-template-columns: 1fr 380px; }
+            .hologram-layout { grid-template-columns: 2fr 1fr; }
         }
 
-        /* Glowing Map Component Container */
+        /* ─── GLOWING MAP COMPONENT ─── */
         .map-box {
-            background: var(--panel-bg);
-            border-radius: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            height: 500px;
+            background: rgba(0,0,0,0.3);
+            border-radius: 16px;
+            border: 1px solid var(--neon-cyan);
+            height: 400px; /* Fixed height for the map */
             position: relative;
             overflow: hidden;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.6), 0 0 40px rgba(0, 243, 255, 0.03);
+            box-shadow: inset 0 0 20px var(--neon-cyan);
         }
         #map { height: 100%; width: 100%; }
 
-        /* Glassmorphic Side Panel Layout */
-        .panel {
-            background: var(--panel-bg);
-            border-radius: 20px;
-            padding: 25px;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(12px);
+        /* ─── SIDE CONTROL PANEL ─── */
+        .control-panel {
             display: flex;
             flex-direction: column;
             justify-content: space-between;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.6);
+            gap: 20px;
         }
 
         /* Form Inputs Style Configuration */
-        .input-group {
-            margin-bottom: 16px;
-            position: relative;
-        }
+        .input-group { margin-bottom: 15px; }
         .input-group label {
             display: block;
-            font-size: 0.75rem;
+            font-size: 0.8rem;
             font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 1px;
-            color: var(--text-muted);
-            margin-bottom: 6px;
+            letter-spacing: 1.5px;
+            color: var(--neon-cyan);
+            margin-bottom: 8px;
+            text-shadow: 0 0 5px var(--neon-cyan);
         }
         .input-field {
             width: 100%;
-            background: rgba(6, 8, 20, 0.6);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            padding: 14px 16px;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--neon-cyan);
+            padding: 16px;
             border-radius: 10px;
             color: white;
-            font-size: 0.95rem;
-            transition: all 0.2s ease;
+            font-size: 1rem;
+            transition: all 0.3s ease;
         }
         .input-field:focus {
             outline: none;
-            border-color: var(--neon-cyan);
-            box-shadow: 0 0 10px rgba(0, 243, 255, 0.2);
-            background: rgba(6, 8, 20, 0.9);
+            box-shadow: 0 0 15px var(--neon-cyan);
+            background: rgba(0, 0, 0, 0.8);
         }
 
         /* Action Buttons */
@@ -138,30 +171,28 @@
             background: linear-gradient(135deg, var(--vegas-gold) 0%, #c39627 100%);
             color: #000;
             border: none;
-            padding: 16px;
+            padding: 18px;
             border-radius: 12px;
-            font-size: 1.05rem;
+            font-size: 1.1rem;
             font-weight: 800;
             cursor: pointer;
             width: 100%;
-            transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
-            box-shadow: 0 4px 20px rgba(255, 215, 0, 0.2);
+            transition: all 0.3s ease;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-top: 5px;
+            letter-spacing: 1px;
         }
         .btn-action:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 25px rgba(255, 215, 0, 0.35);
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 0 25px var(--vegas-gold), 0 0 50px var(--neon-magenta);
             background: linear-gradient(135deg, #fff 0%, var(--vegas-gold) 100%);
         }
 
-        /* Real-Time Log Layout Styles */
-        .status-container {
-            margin-top: 22px;
+        /* Status Display Area */
+        .status-area {
+            margin-top: 15px;
         }
         .status-title {
-            font-size: 0.75rem;
+            font-size: 0.8rem;
             text-transform: uppercase;
             color: var(--text-muted);
             letter-spacing: 1.5px;
@@ -169,78 +200,104 @@
             font-weight: 700;
         }
         #output-log {
-            background: rgba(6, 8, 20, 0.4);
+            background: rgba(0, 0, 0, 0.3);
             border-radius: 10px;
-            padding: 12px;
-            font-size: 0.85rem;
-            border: 1px solid rgba(255,255,255,0.03);
-            color: rgba(255,255,255,0.75);
-            line-height: 1.4;
+            padding: 15px;
+            font-size: 0.9rem;
+            border: 1px solid rgba(255,255,255,0.05);
+            color: rgba(255,255,255,0.85);
+            line-height: 1.6;
         }
 
-        /* Option Recommendations Panel Cards */
+        /* Option Recommendations Panel Cards (Refined for Hologram) */
         .status-card {
-            background: rgba(255, 255, 255, 0.02);
+            background: rgba(255, 255, 255, 0.03);
             border-radius: 10px;
-            padding: 14px;
-            margin-bottom: 10px;
-            border: 1px solid rgba(255,255,255,0.03);
+            padding: 16px;
+            margin-bottom: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
             border-left: 4px solid var(--neon-cyan);
-            transition: transform 0.2s;
+            transition: all 0.3s ease;
         }
-        .status-card:hover { transform: translateX(3px); }
+        .status-card:hover {
+            transform: translateX(5px);
+            border-left-color: var(--vegas-gold);
+            background: rgba(0, 243, 255, 0.1);
+            box-shadow: 0 0 15px rgba(0, 243, 255, 0.2);
+        }
         .status-card.free { border-left-color: var(--vegas-gold); }
-        .status-card h4 { font-size: 0.95rem; margin-bottom: 3px; font-weight: 600; }
-        .status-card p { font-size: 0.85rem; color: var(--text-muted); }
+        .status-card h4 {
+            font-size: 1rem;
+            margin-bottom: 4px;
+            font-weight: 600;
+            color: #fff;
+        }
+        .status-card p {
+            font-size: 0.9rem;
+            color: var(--text-muted);
+        }
+        .status-card b { color: var(--neon-cyan); }
+
+        /* Leaflet dark overrides for holographic theme */
+        .leaflet-tile {
+            filter: invert(1) hue-rotate(180deg) brightness(0.9) saturate(2);
+        }
+        .leaflet-container { background: transparent !important; }
+        .leaflet-control-attribution { display: none !important; } /* Hide attribution for cleaner look */
+        .leaflet-popup-content-wrapper { background: rgba(18, 22, 43, 0.9); color: #fff; border: 1px solid var(--neon-cyan); }
+        .leaflet-popup-tip { background: rgba(18, 22, 43, 0.9); }
+        .leaflet-popup-content b { color: var(--neon-cyan); }
     </style>
 </head>
 <body>
 
-    <!-- Las Vegas Signature Brand Headline Only -->
-    <header>
-        <h1 class="logo-title">Park Fast. Park Free. ParkLV</h1>
-    </header>
+    <!-- The primary content is contained within a single, large holographic panel -->
+    <div class="main-hologram-panel">
+        <header>
+            <h1 class="logo-title">Park Fast. Park Free. ParkLV</h1>
+            <p class="header-sub">Augmented Reality Parking Engine</p>
+        </header>
 
-    <div class="main-container">
-        <div class="app-grid">
-            <!-- Map Canvas Window Framework -->
+        <div class="hologram-layout">
+            <!-- Map Canvas Window (Integrated) -->
             <div class="map-box">
                 <div id="map"></div>
             </div>
 
-            <!-- Dashboard App Interaction Control Panel -->
-            <div class="panel">
+            <!-- Dashboard Interaction Control Panel (Integrated) -->
+            <div class="control-panel">
                 <div>
                     <!-- Interactive Routing Fields -->
                     <div class="input-group">
                         <label for="start-loc">1. Your Location</label>
-                        <input type="text" id="start-loc" class="input-field" placeholder="Using GPS / Current Location..." />
+                        <input type="text" id="start-loc" class="input-field" placeholder="Detecting GPS..." />
                     </div>
 
                     <div class="input-group">
                         <label for="dest-loc">2. Destination</label>
-                        <input type="text" id="dest-loc" class="input-field" placeholder="e.g., Caesars Palace, Fremont St..." value="The Cosmopolitan of Las Vegas" />
+                        <input type="text" id="dest-loc" class="input-field" placeholder="e.g., Caesars Palace, T-Mobile Arena" value="The Cosmopolitan of Las Vegas" />
                     </div>
 
                     <button class="btn-action" onclick="locateAndRoute()">Find Closest Free Spot</button>
-                    
-                    <div class="status-container">
-                        <div class="status-title">Live Tracking Engine</div>
-                        <div id="output-log">
-                            Enter coordinates or click above. Safe, unmetered parking logic requires no downloads.
-                        </div>
+                </div>
+
+                <div class="status-area">
+                    <div class="status-title">Live Tracking Engine</div>
+                    <div id="output-log">
+                        Enter coordinates or click "Find Spot". No downloads required.
                     </div>
                 </div>
 
-                <div class="status-container" style="margin-top: 15px;">
+                <!-- Closest Options found (Integrated) -->
+                <div class="status-area" style="margin-top: 15px;">
                     <div class="status-title">Closest Free Options Found</div>
                     <div class="status-card free">
                         <h4>Fremont St. Smart Structure</h4>
-                        <p>Distance: 0.2 mi | Open Slots: 14</p>
+                        <p>Distance: 0.2 mi | <b>Open Slots: 14</b></p>
                     </div>
                     <div class="status-card">
                         <h4>Arts District Open Lot</h4>
-                        <p>Distance: 0.5 mi | Open Slots: 8</p>
+                        <p>Distance: 0.5 mi | <b>Open Slots: 8</b></p>
                     </div>
                 </div>
             </div>
@@ -250,75 +307,57 @@
     <!-- OpenStreetMap / Leaflet Map Engines Setup -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
+        // Initialize map centered on Las Vegas
         let map = L.map('map').setView([36.1147, -115.1728], 14);
-        
+
+        // Add a custom dark/inverted tile layer to match the holographic aesthetic
         L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
             attribution: '&copy; OpenStreetMap contributors &copy; CARTO'
         }).addTo(map);
 
+        // Mock data for parking spots
         const mockFreeParkingSpots = [
             { name: "The Cosmopolitan Free Structure Zone", lat: 36.1098, lng: -115.1740, slots: 11 },
             { name: "Bellagio Area Open Access Lot", lat: 36.1126, lng: -115.1765, slots: 6 },
             { name: "Fremont St. Smart Structure", lat: 36.1710, lng: -115.1410, slots: 14 }
         ];
 
+        // Add markers for mock spots
         mockFreeParkingSpots.forEach(spot => {
             L.circleMarker([spot.lat, spot.lng], {
-                color: '#ffd700',
+                color: '#ffd700', // Vegas Gold
                 fillColor: '#ffd700',
-                fillOpacity: 0.5,
-                radius: 9
+                fillOpacity: 0.6,
+                radius: 10
             }).addTo(map).bindPopup(`<b>${spot.name}</b><br>Available Free Spaces: ${spot.slots}`);
         });
 
+        // Function to handle routing logic
         function locateAndRoute() {
             const logger = document.getElementById('output-log');
             const destVal = document.getElementById('dest-loc').value || "Destination";
-            
+
             if (!navigator.geolocation) {
-                logger.innerHTML = "❌ Geolocation tracking parameters unsupported by this device browser.";
+                logger.innerHTML = "❌ Geolocation parameters unsupported by this device browser.";
                 return;
             }
 
-            logger.innerHTML = `🔄 Initializing fast-track routing mapping calculation matrices for your route to ${destVal}...`;
+            logger.innerHTML = `🔄 Calculating vectors to ${destVal}...`;
 
             navigator.geolocation.getCurrentPosition(
                 (position) => {
                     const userLat = position.coords.latitude;
                     const userLng = position.coords.longitude;
 
+                    // Recenter map on user
                     map.setView([userLat, userLng], 15);
 
+                    // Add user location marker
                     L.marker([userLat, userLng]).addTo(map)
-                        .bindPopup('<b>Your Current Location Target</b>').openPopup();
+                        .bindPopup('<b>Your Location</b>').openPopup();
 
+                    // Find closest spot
                     let closestSpot = mockFreeParkingSpots[0];
                     let minDistance = Infinity;
 
-                    mockFreeParkingSpots.forEach(spot => {
-                        let d = Math.sqrt(Math.pow(spot.lat - userLat, 2) + Math.pow(spot.lng - userLng, 2));
-                        if (d < minDistance) {
-                            minDistance = d;
-                            closestSpot = spot;
-                        }
-                    });
-
-                    logger.innerHTML = `⚡ <b>Fast Route Acquired!</b><br>Routing vector to: <b>${closestSpot.name}</b><br>Enjoy your arrival in Las Vegas!`;
-                    
-                    let polyline = L.polyline([
-                        [userLat, userLng],
-                        [closestSpot.lat, closestSpot.lng]
-                    ], { color: '#00f3ff', weight: 4, dashArray: '6, 8' }).addTo(map);
-                    
-                    map.fitBounds(polyline.getBounds());
-                },
-                (error) => {
-                    logger.innerHTML = `ℹ️ GPS permissions skipped. Tracking paths from Strip core towards <b>${destVal}</b> options natively instead.`;
-                    map.setView([36.1147, -115.1728], 14);
-                },
-                { enableHighAccuracy: true, timeout: 8000 }
-            );
-        }
-    </script>
-</body>
-</html>
+                    mock
