@@ -3,323 +3,58 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Park Fast. Park Free. ParkLV</title>
-    <!-- Leaflet Open-Source Mapping CSS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <title>ParkLV.com | Live</title>
     <style>
-        :root {
-            --bg-dark: #060814;
-            --panel-bg: rgba(18, 22, 43, 0.6); 
-            --neon-cyan: #00f3ff;
-            --neon-magenta: #ff007f;
-            --vegas-gold: #ffd700;
-            --text-light: #ffffff;
-            --text-muted: #8fa0dd;
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-        }
-
-        body {
-            /* ─── UPDATED BACKGROUND IMAGE URL ─── */
-            /* This new, publicly hosted URL replaces the old one and should load correctly on your live site. */
-            background-image: 
-                linear-gradient(to bottom, rgba(6, 8, 20, 0.3), rgba(6, 8, 20, 0.6)),
-                url('https://images.unsplash.com/photo-1591181128816-9a8c82c34053?q=80&w=2000');
-            /* ─────────────────────────────────── */
+        body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; }
+        
+        /* THE PICTURE IS THE ENTIRE PAGE */
+        .hero-background {
+            height: 100vh;
+            width: 100vw;
+            background: url('https://i.imgur.com/your_uploaded_image_id.png') no-repeat center center fixed; /* UPLOAD WOW_3.png AND REPLACE THIS URL */
             background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-            background-attachment: fixed;
-            color: var(--text-light);
             display: flex;
             flex-direction: column;
-            min-height: 100vh;
-            overflow-x: hidden;
-        }
-
-        .main-hologram-container {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
+            justify-content: flex-end;
             align-items: center;
-            margin-top: 180px; 
-            padding: 0 20px 40px 20px;
-            width: 100%;
-            margin: 0 auto;
-            gap: 25px;
         }
 
-        header {
-            text-align: center;
-            position: absolute;
-            top: 40px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 100;
-            pointer-events: none;
-        }
-
-        .logo-title {
-            font-size: 4rem;
-            font-weight: 900;
-            letter-spacing: -2px;
-            text-transform: uppercase;
-            background: linear-gradient(135deg, #fff 30%, var(--vegas-gold) 75%, var(--neon-cyan));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            text-shadow: 0 0 20px rgba(0, 243, 255, 0.6), 0 0 40px rgba(255, 215, 0, 0.4);
-        }
-
-        .app-grid {
-            display: grid;
-            grid-template-columns: 1fr;
-            width: 100%;
-            gap: 25px;
-            background: var(--panel-bg);
-            border-radius: 24px;
-            border: 1px solid rgba(0, 243, 255, 0.3);
+        /* FLOATING CONTROL PANEL */
+        .ui-panel {
+            background: rgba(18, 22, 43, 0.7);
             backdrop-filter: blur(15px);
-            box-shadow: 0 15px 35px rgba(0,0,0,0.7), 0 0 50px rgba(0, 243, 255, 0.2);
             padding: 30px;
-        }
-        @media (min-width: 992px) {
-            .app-grid { grid-template-columns: 1fr 380px; }
-        }
-
-        .map-box {
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 16px;
-            border: 1px solid var(--neon-cyan);
-            height: 500px;
-            position: relative;
-            overflow: hidden;
-            box-shadow: inset 0 0 20px var(--neon-cyan);
-        }
-        #map { height: 100%; width: 100%; }
-
-        .panel {
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-        }
-
-        .input-group { margin-bottom: 16px; }
-        .input-group label {
-            display: block;
-            font-size: 0.75rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            letter-spacing: 1.5px;
-            color: var(--neon-cyan);
-            margin-bottom: 8px;
-            text-shadow: 0 0 5px var(--neon-cyan);
-        }
-        .input-field {
-            width: 100%;
-            background: rgba(6, 8, 20, 0.4);
-            border: 1px solid var(--neon-cyan);
-            padding: 14px 16px;
-            border-radius: 10px;
+            border-radius: 20px;
+            border: 1px solid rgba(0, 243, 255, 0.3);
+            width: 90%;
+            max-width: 400px;
+            margin-bottom: 50px;
             color: white;
-            font-size: 0.95rem;
-            transition: all 0.2s ease;
-        }
-        .input-field:focus {
-            outline: none;
-            border-color: var(--vegas-gold);
-            box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
-            background: rgba(6, 8, 20, 0.9);
+            text-align: center;
         }
 
         .btn-action {
-            background: linear-gradient(135deg, var(--vegas-gold) 0%, #c39627 100%);
-            color: #000;
+            background: var(--vegas-gold, #ffd700);
+            color: black;
             border: none;
-            padding: 16px;
-            border-radius: 12px;
-            font-size: 1.05rem;
-            font-weight: 800;
+            padding: 15px 30px;
+            border-radius: 10px;
+            font-weight: bold;
+            text-transform: uppercase;
             cursor: pointer;
-            width: 100%;
-            transition: all 0.3s ease;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-top: 10px;
+            margin-top: 15px;
         }
-        .btn-action:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 25px rgba(255, 215, 0, 0.5);
-            background: linear-gradient(135deg, #fff 0%, var(--vegas-gold) 100%);
-        }
-
-        .status-container { margin-top: 20px; }
-        .status-title {
-            font-size: 0.75rem;
-            text-transform: uppercase;
-            color: var(--text-muted);
-            letter-spacing: 1.5px;
-            margin-bottom: 8px;
-            font-weight: 700;
-        }
-        #output-log {
-            background: rgba(0, 0, 0, 0.2);
-            border-radius: 8px;
-            padding: 12px;
-            font-size: 0.85rem;
-            border: 1px solid rgba(255,255,255,0.05);
-            color: rgba(255,255,255,0.75);
-            line-height: 1.4;
-        }
-
-        .status-card {
-            background: rgba(255, 255, 255, 0.02);
-            border-radius: 8px;
-            padding: 12px;
-            margin-bottom: 8px;
-            border: 1px solid rgba(255,255,255,0.03);
-            border-left: 4px solid var(--neon-cyan);
-            transition: transform 0.2s;
-        }
-        .status-card:hover { transform: translateX(3px); border-left-color: var(--vegas-gold); }
-        .status-card.free { border-left-color: var(--vegas-gold); }
-        .status-card h4 { font-size: 0.95rem; margin-bottom: 2px; font-weight: 600; color: #fff; }
-        .status-card p { font-size: 0.85rem; color: var(--text-muted); }
-        .status-card b { color: var(--neon-cyan); }
-
-        .leaflet-tile {
-            filter: invert(1) hue-rotate(180deg) brightness(0.95) saturate(1.5);
-        }
-        .leaflet-container { background: transparent !important; }
-        .leaflet-control-attribution { display: none !important; }
-        .leaflet-popup-content-wrapper { background: rgba(18, 22, 43, 0.9); color: #fff; border: 1px solid var(--neon-cyan); }
-        .leaflet-popup-tip { background: rgba(18, 22, 43, 0.9); }
     </style>
 </head>
 <body>
 
-    <header>
-        <h1 class="logo-title">Park Fast. Park Free. ParkLV</h1>
-    </header>
-
-    <div class="main-hologram-container">
-        <div class="app-grid">
-            <div class="map-box">
-                <div id="map"></div>
-            </div>
-
-            <div class="panel">
-                <div>
-                    <div class="input-group">
-                        <label for="start-loc">1. Your Location</label>
-                        <input type="text" id="start-loc" class="input-field" placeholder="Detecting GPS..." />
-                    </div>
-
-                    <div class="input-group">
-                        <label for="dest-loc">2. Destination</label>
-                        <input type="text" id="dest-loc" class="input-field" placeholder="e.g., Bellagio, T-Mobile Arena" value="The Cosmopolitan of Las Vegas" />
-                    </div>
-
-                    <button class="btn-action" onclick="locateAndRoute()">Find Closest Free Spot</button>
-                    
-                    <div class="status-container">
-                        <div class="status-title">Live Tracking Engine</div>
-                        <div id="output-log">
-                            Enter coordinates or click "Find Spot". No downloads required.
-                        </div>
-                    </div>
-                </div>
-
-                <div class="status-container" style="margin-top: 15px;">
-                    <div class="status-title">Closest Free Options Found</div>
-                    <div class="status-card free">
-                        <h4>Fremont St. Smart Structure</h4>
-                        <p>Distance: 0.2 mi | <b>Open Slots: 14</b></p>
-                    </div>
-                    <div class="status-card">
-                        <h4>Arts District Open Lot</h4>
-                        <p>Distance: 0.5 mi | <b>Open Slots: 8</b></p>
-                    </div>
-                </div>
-            </div>
+    <div class="hero-background">
+        <div class="ui-panel">
+            <h3>Find Your Free Spot</h3>
+            <input type="text" placeholder="Destination..." style="width:100%; padding: 10px; border-radius: 5px;">
+            <button class="btn-action">Start Navigation</button>
         </div>
     </div>
 
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script>
-        let map = L.map('map').setView([36.1147, -115.1728], 14);
-
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-            attribution: '&copy; OpenStreetMap contributors &copy; CARTO'
-        }).addTo(map);
-
-        const mockFreeParkingSpots = [
-            { name: "The Cosmopolitan Free Structure Zone", lat: 36.1098, lng: -115.1740, slots: 11 },
-            { name: "Bellagio Area Open Access Lot", lat: 36.1126, lng: -115.1765, slots: 6 },
-            { name: "Fremont St. Smart Structure", lat: 36.1710, lng: -115.1410, slots: 14 }
-        ];
-
-        mockFreeParkingSpots.forEach(spot => {
-            L.circleMarker([spot.lat, spot.lng], {
-                color: '#ffd700',
-                fillColor: '#ffd700',
-                fillOpacity: 0.6,
-                radius: 10
-            }).addTo(map).bindPopup(`<b>${spot.name}</b><br>Available Free Spaces: ${spot.slots}`);
-        });
-
-        function locateAndRoute() {
-            const logger = document.getElementById('output-log');
-            const destVal = document.getElementById('dest-loc').value || "Destination";
-
-            if (!navigator.geolocation) {
-                logger.innerHTML = "❌ Geolocation parameters unsupported by this device browser.";
-                return;
-            }
-
-            logger.innerHTML = `🔄 Calculating vectors to ${destVal}...`;
-
-            navigator.geolocation.getCurrentPosition(
-                (position) => {
-                    const userLat = position.coords.latitude;
-                    const userLng = position.coords.longitude;
-
-                    map.setView([userLat, userLng], 15);
-
-                    L.marker([userLat, userLng]).addTo(map)
-                        .bindPopup('<b>Your Location</b>').openPopup();
-
-                    let closestSpot = mockFreeParkingSpots[0];
-                    let minDistance = Infinity;
-
-                    mockFreeParkingSpots.forEach(spot => {
-                        let d = Math.sqrt(Math.pow(spot.lat - userLat, 2) + Math.pow(spot.lng - userLng, 2));
-                        if (d < minDistance) {
-                            minDistance = d;
-                            closestSpot = spot;
-                        }
-                    });
-
-                    logger.innerHTML = `⚡ <b>Fast Route Acquired!</b><br>Vectoring to: <b>${closestSpot.name}</b>`;
-                    
-                    let polyline = L.polyline([
-                        [userLat, userLng],
-                        [closestSpot.lat, closestSpot.lng]
-                    ], { color: '#00f3ff', weight: 4, dashArray: '6, 8' }).addTo(map);
-                    
-                    map.fitBounds(polyline.getBounds());
-                },
-                (error) => {
-                    logger.innerHTML = `ℹ️ GPS permissions skipped. Tracking paths from Strip core towards <b>${destVal}</b> options natively instead.`;
-                    map.setView([36.1147, -115.1728], 14);
-                },
-                { enableHighAccuracy: true, timeout: 8000 }
-            );
-        }
-    </script>
 </body>
 </html>
