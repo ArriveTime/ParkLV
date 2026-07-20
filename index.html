@@ -8,19 +8,10 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
     <style>
         :root {
-            /* ─── UPDATED COLOR FORMAT (User Request) ─── */
-            --bg-gold: #ffd700;    /* Gold Background */
-            --text-blue: #0d47a1;   /* Blue Text */
-            
-            /* Secondary Accent Colors */
-            --btn-blue: #1565c0;
-            --btn-hover-blue: #0b3e82;
+            --bg-gold: #ffd700;
+            --text-blue: #0d47a1;
             --text-light: #ffffff;
-            
-            /* Map Customization Colors */
             --map-bg-white: #ffffff;
-            --map-street-blue: #42a5f5;
-            --map-label-blue: #0d47a1;
             --border-color: #bbdefb;
         }
 
@@ -32,9 +23,7 @@
         }
 
         body {
-            /* Apply the new Gold Background */
             background-color: var(--bg-gold);
-            /* ─── NEW MODERN GRAPHIC INTEGRATION ─── */
             background-image: 
                 linear-gradient(to bottom, rgba(255, 215, 0, 0.8), rgba(255, 215, 0, 0.95)),
                 url('https://images.unsplash.com/photo-1605035012319-110213f4525c?q=80&w=2000');
@@ -48,12 +37,11 @@
             min-height: 100vh;
         }
 
-        /* ─── HEADER (User Request: Blue lettering on Gold background) ─── */
         header {
             text-align: center;
             padding: 30px 20px;
             border-bottom: 2px solid var(--border-color);
-            background-color: rgba(255, 215, 0, 0.9); /* Slightly transparent gold header */
+            background-color: rgba(255, 215, 0, 0.9);
         }
 
         .logo-title {
@@ -62,7 +50,6 @@
             letter-spacing: -1px;
             text-transform: uppercase;
             color: var(--text-blue);
-            /* Subtle text shadow for depth */
             text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
         .header-tagline {
@@ -72,11 +59,10 @@
             opacity: 0.9;
         }
 
-        /* ─── MAIN APPLICATION GRID (Split-Screen Layout) ─── */
         .main-container {
             flex: 1;
             display: grid;
-            grid-template-columns: 1fr; /* Stack by default for mobile */
+            grid-template-columns: 1fr;
             gap: 25px;
             padding: 25px;
             max-width: 1400px;
@@ -86,27 +72,49 @@
 
         @media (min-width: 992px) {
             .main-container {
-                grid-template-columns: 1fr 380px; /* Map on left, controls on right */
+                grid-template-columns: 1fr 380px;
                 padding: 30px;
             }
         }
 
-        /* ─── MAP COMPONENT (User Request: White Background Map, Blue Streets/Labels) ─── */
+        .map-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        /* New button to trigger geolocation */
+        .btn-locate {
+            background-color: var(--text-blue);
+            color: var(--text-light);
+            border: none;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-size: 0.9rem;
+            transition: background-color 0.2s;
+            align-self: flex-start; /* Align to left */
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        .btn-locate:hover { background-color: #0b3e82; }
+
         .map-panel {
             background-color: var(--map-bg-white);
             border-radius: 16px;
             border: 2px solid var(--border-color);
-            height: 400px; /* Mobile height */
-            min-height: 550px; /* Desktop height */
+            height: 400px;
+            min-height: 550px;
             position: relative;
             overflow: hidden;
             box-shadow: 0 8px 24px rgba(0,0,0,0.15);
         }
         #map { height: 100%; width: 100%; }
 
-        /* ─── CONTROL PANEL (Professional Blue) ─── */
         .control-panel {
-            background-color: var(--text-blue); /* Solid Blue Panel */
+            background-color: var(--text-blue);
             color: var(--text-light);
             border-radius: 16px;
             padding: 30px;
@@ -123,13 +131,12 @@
             letter-spacing: 0.5px;
         }
 
-        /* Form Inputs Style */
         .input-group { margin-bottom: 15px; }
         .input-group label {
             display: block;
             font-size: 0.9rem;
             font-weight: 600;
-            color: var(--bg-gold); /* Gold Labels */
+            color: var(--bg-gold);
             margin-bottom: 8px;
         }
         .input-field {
@@ -147,7 +154,6 @@
             box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.5);
         }
 
-        /* Action Button (High Visibility) */
         .btn-action {
             background-color: var(--bg-gold);
             color: var(--text-blue);
@@ -166,7 +172,6 @@
         .btn-action:hover { background-color: #e0c245; }
         .btn-action:active { transform: scale(0.98); }
 
-        /* ─── STATUS BOX (Cleaned up) ─── */
         .status-box {
             background-color: rgba(255, 255, 255, 0.1);
             border-radius: 8px;
@@ -185,7 +190,6 @@
             line-height: 1.5;
         }
 
-        /* Option Recommendations Cards */
         .rec-header {
             font-size: 0.9rem;
             font-weight: 700;
@@ -207,18 +211,16 @@
         .status-card h4 { font-size: 1rem; margin-bottom: 3px; font-weight: 700; }
         .status-card p { font-size: 0.85rem; color: rgba(255, 255, 255, 0.9); }
 
-        /* ─── LEAFLET MAP OVERRIDES (Custom Blue/White Style) ─── */
-        /* This customizes the CartoDB basemap to match the requested colors */
+        /* LEAFLET MAP OVERRIDES */
         .leaflet-tile { 
-            /* Invert colors and shift hue to get blue streets on white background */
             filter: grayscale(100%) invert(95%) hue-rotate(180deg) brightness(105%) contrast(100%); 
         }
         .leaflet-container { background: var(--map-bg-white) !important; }
-        .leaflet-control-attribution { display: none !important; } /* Clean look */
+        .leaflet-control-attribution { display: none !important; }
         
-        /* Custom User Location Marker (A pulsing blue dot) */
+        /* User Location Marker (Pulsing blue dot) */
         .user-location-marker {
-            background-color: var(--btn-blue);
+            background-color: var(--text-blue);
             border: 3px solid var(--bg-gold);
             border-radius: 50%;
             box-shadow: 0 0 0 10px rgba(13, 71, 161, 0.3);
@@ -240,19 +242,20 @@
     </header>
 
     <div class="main-container">
-        <!-- Map Canvas Window Framework -->
-        <div class="map-panel">
-            <div id="map"></div>
+        <div class="map-wrapper">
+            <!-- ─── USER MUST CLICK THIS BUTTON TO START GPS ─── -->
+            <button class="btn-locate" onclick="initRealTimeLocation()">📍 Pin My Location</button>
+            
+            <div class="map-panel">
+                <div id="map"></div>
+            </div>
         </div>
 
-        <!-- Dashboard App Interaction Control Panel -->
         <div class="control-panel">
             <div class="panel-header">Find Parking</div>
-            
-            <!-- Interactive Routing Fields -->
             <div class="input-group">
                 <label for="start-loc">1. Your Location</label>
-                <input type="text" id="start-loc" class="input-field" placeholder="Awaiting GPS..." readonly />
+                <input type="text" id="start-loc" class="input-field" placeholder="Click 'Pin My Location' above..." readonly />
             </div>
 
             <div class="input-group">
@@ -265,11 +268,10 @@
             <div class="status-box">
                 <div class="status-label">System Status</div>
                 <div id="output-log">
-                    Initializing smart grid connection...
+                    Awaiting location permission...
                 </div>
             </div>
 
-            <!-- Closest Options Found (Static Mock Data) -->
             <div class="rec-header">Closest Free Options Found</div>
             <div class="status-card">
                 <h4>Fremont St. Smart Structure</h4>
@@ -282,32 +284,27 @@
         </div>
     </div>
 
-    <!-- OpenStreetMap / Leaflet Map Engines Setup -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
         // Initialize map centered on Las Vegas Strip
-        // We will update this center once we get the user's location
         let map = L.map('map').setView([36.1147, -115.1728], 14);
         
-        // Add a custom-styled tile layer (Blue streets on white background)
+        // Add custom-styled tile layer
         L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-            // attribution is hidden in CSS
             subdomains: 'abcd',
             maxZoom: 19
         }).addTo(map);
 
-        // Global variables for user location
         let userMarker;
         let userCircle;
 
-        // Custom Icon for user location
         const userIcon = L.divIcon({
             className: 'user-location-marker',
             iconSize: [24, 24],
             iconAnchor: [12, 12]
         });
 
-        // ─── GEOLOCATION LOGIC (Real-Time GPS/Wifi) ─── */
+        // ─── GEOLOCATION LOGIC (Triggered by Button Click) ─── */
         const logger = document.getElementById('output-log');
         const startInput = document.getElementById('start-loc');
 
@@ -320,17 +317,14 @@
 
             logger.innerHTML = "📡 Requesting real-time location (GPS/Wifi)...";
 
-            // Options for high accuracy
             const geoOptions = {
                 enableHighAccuracy: true,
                 timeout: 10000, // 10 second timeout
-                maximumAge: 0   // Do not use a cached position
+                maximumAge: 0
             };
 
+            // This will trigger the browser's permission prompt
             navigator.geolocation.getCurrentPosition(geoSuccess, geoError, geoOptions);
-
-            // Optional: Watch position for real-time updates as the user moves
-            // navigator.geolocation.watchPosition(geoSuccess, geoError, geoOptions);
         }
 
         function geoSuccess(position) {
@@ -341,8 +335,36 @@
             logger.innerHTML = `✅ Location acquired (Accuracy: ${Math.round(accuracy)}m). Pinpointing...`;
             startInput.value = `Lat: ${userLat.toFixed(4)}, Lng: ${userLng.toFixed(4)}`;
 
-            // Remove existing marker/circle if they exist
             if (userMarker) { map.removeLayer(userMarker); }
             if (userCircle) { map.removeLayer(userCircle); }
 
-            // Add a pulsing marker at
+            // Add marker and accuracy circle
+            userMarker = L.marker([userLat, userLng], { icon: userIcon }).addTo(map);
+            userCircle = L.circle([userLat, userLng], { 
+                radius: accuracy,
+                color: '#0d47a1', // Text Blue
+                fillColor: '#0d47a1',
+                fillOpacity: 0.1,
+                weight: 1
+            }).addTo(map);
+
+            // Zoom to user location with tight focus
+            map.fitBounds(userCircle.getBounds(), { padding: [50, 50] });
+        }
+
+        function geoError(error) {
+            let errorMsg = "";
+            switch(error.code) {
+                case error.PERMISSION_DENIED: errorMsg = "User denied the request for Geolocation."; break;
+                case error.POSITION_UNAVAILABLE: errorMsg = "Location information is unavailable."; break;
+                case error.TIMEOUT: errorMsg = "The request to get user location timed out."; break;
+                default: errorMsg = "An unknown error occurred."; break;
+            }
+            logger.innerHTML = `❌ ${errorMsg} Please check your browser settings.`;
+            startInput.value = "Location Access Denied";
+        }
+
+        // Mock Parking Data
+        const mockFreeParkingSpots = [
+            { name: "The Cosmopolitan Free Structure Zone", lat: 36.1098, lng: -115.1740, slots: 11 },
+            { name: "Bellagio Area Open Access Lot", lat:
