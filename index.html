@@ -171,7 +171,7 @@
             padding: 12px; 
             border-radius: 8px; 
             font-size: 0.85rem;
-            line-height: 1.3;
+            line-height: 1.35;
         }
         
         .user-location-marker {
@@ -252,7 +252,6 @@
             <button class="btn-action" id="view-lv-btn" onclick="transitionToLasVegas()">Expand Las Vegas Free Parking</button>
 
             <div class="spot-list" id="parking-list-container">
-                <!-- Dynamically populated when LV view is triggered -->
                 <div style="text-align:center; padding: 20px 0; color: rgba(255,255,255,0.7); font-size: 0.9rem;">
                     Click the flashing Las Vegas pin on the map or the button above to view real-time free parking locations.
                 </div>
@@ -318,19 +317,12 @@
         function transitionToLasVegas() {
             activeViewMode = 'LV';
             
-            // Remove national hub pin temporarily during zoomed view
             if (lvHubMarker) map.removeLayer(lvHubMarker);
 
-            // Fly map smooth down to Las Vegas Strip center
             map.flyTo([36.1285, -115.1670], 14, { duration: 1.8 });
 
-            // Clear old parking markers
             clearParkingMarkers();
-
-            // Populate fresh real-time parking markers
             renderParkingSpots();
-
-            // Render live sidebar list
             renderSidebarList();
 
             logger.innerHTML = `✅ <b>Las Vegas Map Expanded!</b> Showing live availability for <b>${freeParkingSpots.length} free parking hubs</b>.`;
@@ -405,51 +397,76 @@
             parkingMarkers = [];
         }
 
-        // 4. Real-time User GPS Location handling
+        // 4. Robust Real-Time GPS Location Handling with Auto-Fallback
         function initRealTimeUserLocation() {
             if (!navigator.geolocation) { 
-                logger.innerHTML = "❌ Geolocation unsupported by browser."; 
+                logger.innerHTML = "❌ Geolocation is unsupported by your browser."; 
                 return; 
             }
 
             if (watchId !== null) navigator.geolocation.clearWatch(watchId);
 
+            // Try High Accuracy GPS first
             watchId = navigator.geolocation.watchPosition(
-                (pos) => {
-                    const lat = pos.coords.latitude;
-                    const lng = pos.coords.longitude;
-                    const accuracy = pos.coords.accuracy;
-
-                    if (userMarker) {
-                        userMarker.setLatLng([lat, lng]);
-                    } else {
-                        userMarker = L.marker([lat, lng], { icon: userIcon })
-                            .addTo(map)
-                            .bindPopup("<b>📍 Your Real-Time Location</b>");
-                    }
-
-                    if (accuracyCircle) {
-                        accuracyCircle.setLatLng([lat, lng]);
-                        accuracyCircle.setRadius(accuracy || 0);
-                    } else if (accuracy) {
-                        accuracyCircle = L.circle([lat, lng], {
-                            radius: accuracy,
-                            color: '#0d47a1',
-                            fillColor: '#0d47a1',
-                            fillOpacity: 0.12,
-                            weight: 1
-                        }).addTo(map);
-                    }
-
-                    if (activeViewMode === 'US') {
-                        logger.innerHTML = `📍 <b>Location detected!</b> Pinned on national overview map. Click Las Vegas icon to explore parking.`;
-                    }
-                },
-                (err) => {
-                    logger.innerHTML = `⚠️ Location permission denied or offline. Showing interactive map view.`;
-                },
-                { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
+                handlePositionSuccess,
+                handlePositionError,
+                { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
             );
+        }
+
+        function handlePositionSuccess(pos) {
+            const lat = pos.coords.latitude;
+            const lng = pos.coords.longitude;
+            const accuracy = pos.coords.accuracy;
+
+            if (userMarker) {
+                userMarker.setLatLng([lat, lng]);
+            } else {
+                userMarker = L.marker([lat, lng], { icon: userIcon })
+                    .addTo(map)
+                    .bindPopup("<b>📍 Your Real-Time Location</b>");
+            }
+
+            if (accuracyCircle) {
+                accuracyCircle.setLatLng([lat, lng]);
+                accuracyCircle.setRadius(accuracy || 0);
+            } else if (accuracy) {
+                accuracyCircle = L.circle([lat, lng], {
+                    radius: accuracy,
+                    color: '#0d47a1',
+                    fillColor: '#0d47a1',
+                    fillOpacity: 0.12,
+                    weight: 1
+                }).addTo(map);
+            }
+
+            if (activeViewMode === 'US') {
+                logger.innerHTML = `📍 <b>Location detected!</b> Pinned on national overview map. Click Las Vegas icon to explore parking.`;
+            }
+        }
+
+        function handlePositionError(err) {
+            // If GPS high-accuracy times out, fallback to standard Wi-Fi/IP location
+            if (err.code === err.TIMEOUT) {
+                logger.innerHTML = "⏳ GPS timing out. Retrying with standard location...";
+                navigator.geolocation.getCurrentPosition(
+                    handlePositionSuccess,
+                    (fallbackErr) => displayLocationErrorMessage(fallbackErr),
+                    { enableHighAccuracy: false, timeout: 15000, maximumAge: 60000 }
+                );
+            } else {
+                displayLocationErrorMessage(err);
+            }
+        }
+
+        function displayLocationErrorMessage(err) {
+            if (window.location.protocol !== 'https:' && window.location.hostname !== 'localhost') {
+                logger.innerHTML = `⚠️ <b>Location blocked:</b> Geolocation requires an HTTPS connection. Enforce HTTPS in your GitHub Pages settings.`;
+            } else if (err.code === err.PERMISSION_DENIED) {
+                logger.innerHTML = `⚠️ <b>Location permission denied:</b> Click the lock/settings icon in your address bar to allow location access.`;
+            } else {
+                logger.innerHTML = `⚠️ Location unavailable (${err.message}). Interactive map ready.`;
+            }
         }
 
         function reCenterUserLocation() {
@@ -465,11 +482,9 @@
         function startSimulatedRealTimeUpdates() {
             setInterval(() => {
                 freeParkingSpots.forEach(spot => {
-                    // Random slight fluctuation in available spot count
                     const delta = Math.floor(Math.random() * 5) - 2;
                     spot.openSpots = Math.max(5, Math.min(spot.totalSpots, spot.openSpots + delta));
 
-                    // Update UI elements if present
                     const cardElem = document.getElementById(`card-count-${spot.id}`);
                     if (cardElem) cardElem.innerText = `${spot.openSpots} spots available`;
 
