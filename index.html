@@ -66,17 +66,24 @@
         .btn-toolbar {
             background-color: var(--text-blue);
             color: var(--text-light);
-            border: none;
+            border: 2px solid transparent;
             padding: 10px 16px;
             border-radius: 8px;
             font-weight: bold;
             cursor: pointer;
             text-transform: uppercase;
             font-size: 0.85rem;
-            transition: opacity 0.2s;
+            transition: opacity 0.2s, border-color 0.2s;
         }
 
         .btn-toolbar:hover { opacity: 0.9; }
+
+        /* Highlighted blue style for Las Vegas view button */
+        .btn-toolbar-vegas {
+            background-color: var(--text-blue);
+            color: var(--bg-gold);
+            border: 2px solid var(--bg-gold);
+        }
 
         .map-panel {
             background-color: var(--map-bg-white);
@@ -232,7 +239,7 @@
             <div class="top-toolbar">
                 <button class="btn-toolbar" onclick="resetToNationalView()">🇺🇸 US National View</button>
                 <button class="btn-toolbar" onclick="reCenterUserLocation()">📍 My Location</button>
-                <button class="btn-toolbar" style="background-color: var(--bg-gold); color: var(--text-blue);" onclick="transitionToLasVegas()">🎰 Expanded Las Vegas View</button>
+                <button class="btn-toolbar btn-toolbar-vegas" onclick="transitionToLasVegas()">🎰 Expanded Las Vegas View</button>
             </div>
             <div class="map-panel">
                 <div id="map"></div>
@@ -446,7 +453,6 @@
         }
 
         function handlePositionError(err) {
-            // If GPS high-accuracy times out, fallback to standard Wi-Fi/IP location
             if (err.code === err.TIMEOUT) {
                 logger.innerHTML = "⏳ GPS timing out. Retrying with standard location...";
                 navigator.geolocation.getCurrentPosition(
