@@ -64,7 +64,10 @@
             text-transform: uppercase;
             align-self: flex-start;
             margin-bottom: 10px;
+            transition: opacity 0.2s;
         }
+
+        .btn-locate:hover { opacity: 0.9; }
 
         .map-panel {
             background-color: var(--map-bg-white);
@@ -85,6 +88,13 @@
             display: flex;
             flex-direction: column;
             gap: 20px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+        }
+
+        .panel-header {
+            font-size: 1.4rem;
+            font-weight: 800;
+            text-transform: uppercase;
         }
 
         .input-field {
@@ -107,7 +117,10 @@
             font-weight: 800;
             text-transform: uppercase;
             cursor: pointer;
+            transition: transform 0.1s, opacity 0.2s;
         }
+
+        .btn-action:hover { opacity: 0.95; transform: translateY(-1px); }
 
         .status-box { background-color: rgba(255, 255, 255, 0.1); padding: 15px; border-radius: 8px; }
         
@@ -119,8 +132,8 @@
         }
 
         @keyframes pulse {
-            0% { box-shadow: 0 0 0 0 rgba(13, 71, 161, 0.5); }
-            70% { box-shadow: 0 0 0 15px rgba(13, 71, 161, 0); }
+            0% { box-shadow: 0 0 0 0 rgba(13, 71, 161, 0.7); }
+            70% { box-shadow: 0 0 0 18px rgba(13, 71, 161, 0); }
             100% { box-shadow: 0 0 0 0 rgba(13, 71, 161, 0); }
         }
     </style>
@@ -142,7 +155,7 @@
         <div class="control-panel">
             <div class="panel-header">Find Parking</div>
             <label>1. Your Location</label>
-            <!-- Field is now editable for street addresses -->
+            <!-- Field is editable for street addresses -->
             <input type="text" id="start-loc" class="input-field" placeholder="Detecting address or type here..." />
             
             <label>2. Destination</label>
@@ -166,6 +179,8 @@
         }).addTo(map);
 
         let userMarker;
+        let accuracyCircle;
+        let watchId = null;
         let parkingMarkers = [];
         const userIcon = L.divIcon({ className: 'user-location-marker', iconSize: [24, 24], iconAnchor: [12, 12] });
         const logger = document.getElementById('output-log');
@@ -184,43 +199,79 @@
             initRealTimeLocation();
         });
 
+        function updatePositionOnMap(lat, lng, accuracy) {
+            // Update or create user marker
+            if (userMarker) {
+                userMarker.setLatLng([lat, lng]);
+            } else {
+                userMarker = L.marker([lat, lng], { icon: userIcon })
+                    .addTo(map)
+                    .bindPopup("<b>📍 Your Current Location</b>");
+            }
+
+            // Update or create accuracy circle
+            if (accuracyCircle) {
+                accuracyCircle.setLatLng([lat, lng]);
+                accuracyCircle.setRadius(accuracy || 0);
+            } else if (accuracy) {
+                accuracyCircle = L.circle([lat, lng], {
+                    radius: accuracy,
+                    color: '#0d47a1',
+                    fillColor: '#0d47a1',
+                    fillOpacity: 0.15,
+                    weight: 1
+                }).addTo(map);
+            }
+
+            map.setView([lat, lng], 16);
+
+            // Free reverse geocoding to display street address instead of raw GPS coordinates
+            fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}`)
+                .then(res => res.json())
+                .then(data => {
+                    const address = data.display_name || `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+                    document.getElementById('start-loc').value = address;
+                    const roadName = (data.address && data.address.road) ? data.address.road : 'Current Location';
+                    logger.innerHTML = `✅ Location set to: ${roadName}`;
+                })
+                .catch(() => {
+                    document.getElementById('start-loc').value = `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+                    logger.innerHTML = `✅ Location pinned via GPS.`;
+                });
+        }
+
         function initRealTimeLocation() {
             if (!navigator.geolocation) { 
                 logger.innerHTML = "❌ Geolocation unsupported by browser."; 
                 return; 
             }
-            logger.innerHTML = "📡 Detecting current location...";
+            logger.innerHTML = "📡 Detecting real-time GPS location...";
 
-            navigator.geolocation.getCurrentPosition(
+            // Clear active position watch if re-triggering
+            if (watchId !== null) {
+                navigator.geolocation.clearWatch(watchId);
+            }
+
+            // Continuous real-time GPS tracking
+            watchId = navigator.geolocation.watchPosition(
                 (position) => {
                     const lat = position.coords.latitude;
                     const lng = position.coords.longitude;
-                    
-                    if (userMarker) { map.removeLayer(userMarker); }
-                    userMarker = L.marker([lat, lng], { icon: userIcon }).addTo(map);
-                    map.setView([lat, lng], 16);
-
-                    // Free reverse geocoding to display street address instead of raw GPS coordinates
-                    fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}`)
-                        .then(res => res.json())
-                        .then(data => {
-                            const address = data.display_name || `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
-                            document.getElementById('start-loc').value = address;
-                            logger.innerHTML = `✅ Location set to: ${data.address.road || 'Current Location'}`;
-                        })
-                        .catch(() => {
-                            document.getElementById('start-loc').value = `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
-                            logger.innerHTML = `✅ Location pinned via GPS.`;
-                        });
+                    const accuracy = position.coords.accuracy;
+                    updatePositionOnMap(lat, lng, accuracy);
                 },
                 (error) => { 
-                    if (location.protocol !== 'https:') {
+                    if (location.protocol !== 'https:' && location.hostname !== 'localhost') {
                         logger.innerHTML = `❌ GPS Error: Enforce HTTPS on GitHub Pages under Settings > Pages.`;
                     } else {
                         logger.innerHTML = `⚠️ Location permission denied or timed out. You can manually enter an address above.`;
                     }
+                    // Fallback to default Las Vegas center marker if GPS permission blocked
+                    if (!userMarker) {
+                        updatePositionOnMap(36.1147, -115.1728, 0);
+                    }
                 },
-                { enableHighAccuracy: true, timeout: 10000 }
+                { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 }
             );
         }
 
@@ -235,13 +286,15 @@
             freeParkingSpots.forEach(spot => {
                 const marker = L.marker([spot.lat, spot.lng])
                     .addTo(map)
-                    .bindPopup(`<b>${spot.name}</b><br><span style="color:green;font-weight:bold;">100% Free Parking</span>`)
-                    .openPopup();
+                    .bindPopup(`<b>${spot.name}</b><br><span style="color:green;font-weight:bold;">100% Free Parking</span>`);
                 parkingMarkers.push(marker);
             });
 
-            // Adjust view to show all spots
-            const group = L.featureGroup(parkingMarkers);
+            // Adjust view to show user location and all parking spots
+            const allElements = [...parkingMarkers];
+            if (userMarker) allElements.push(userMarker);
+            
+            const group = L.featureGroup(allElements);
             map.fitBounds(group.getBounds().pad(0.2));
 
             logger.innerHTML = `✅ Loaded ${freeParkingSpots.length} nearby free parking spots on map.`;
