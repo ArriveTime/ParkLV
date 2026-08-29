@@ -49,7 +49,44 @@
             gap: 10px;
             flex-wrap: wrap;
         }
-        
+
+        .search-box-container {
+            display: flex;
+            gap: 6px;
+            flex: 1;
+            min-width: 260px;
+        }
+
+        .manual-input {
+            flex: 1;
+            padding: 10px 14px;
+            border-radius: 8px;
+            border: 2px solid var(--text-blue);
+            font-size: 0.9rem;
+            outline: none;
+            font-weight: 600;
+        }
+
+        .manual-input:focus {
+            border-color: #2e7d32;
+            box-shadow: 0 0 0 2px rgba(46, 125, 50, 0.2);
+        }
+
+        .btn-search {
+            background-color: #2e7d32;
+            color: white;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            transition: opacity 0.2s;
+        }
+
+        .btn-search:hover { opacity: 0.9; }
+
         .main-container {
             flex: 1;
             display: grid;
@@ -78,7 +115,6 @@
 
         .btn-toolbar:hover { opacity: 0.9; }
 
-        /* Highlighted blue style for Las Vegas view button */
         .btn-toolbar-vegas {
             background-color: var(--text-blue);
             color: var(--bg-gold);
@@ -238,8 +274,13 @@
         <div class="map-wrapper">
             <div class="top-toolbar">
                 <button class="btn-toolbar" onclick="resetToNationalView()">🇺🇸 US National View</button>
-                <button class="btn-toolbar" onclick="reCenterUserLocation()">📍 My Location</button>
+                <button class="btn-toolbar" onclick="reCenterUserLocation()">📍 My GPS Location</button>
                 <button class="btn-toolbar btn-toolbar-vegas" onclick="transitionToLasVegas()">🎰 Expanded Las Vegas View</button>
+                
+                <div class="search-box-container">
+                    <input type="text" id="manual-location-input" class="manual-input" placeholder="Type city, address, or ZIP..." onkeypress="handleSearchKeyPress(event)">
+                    <button class="btn-search" onclick="searchManualLocation()">Go</button>
+                </div>
             </div>
             <div class="map-panel">
                 <div id="map"></div>
@@ -253,7 +294,7 @@
             </div>
 
             <div class="status-box" id="output-log">
-                Detecting user location on national overview map...
+                Detecting location... If prompted, select Allow or type your city/ZIP above.
             </div>
 
             <button class="btn-action" id="view-lv-btn" onclick="transitionToLasVegas()">Expand Las Vegas Free Parking</button>
@@ -281,13 +322,12 @@
         let watchId = null;
         let parkingMarkers = [];
         let lvHubMarker;
-        let activeViewMode = 'US'; // 'US' or 'LV'
+        let activeViewMode = 'US';
 
         const userIcon = L.divIcon({ className: 'user-location-marker', iconSize: [22, 22], iconAnchor: [11, 11] });
         const lvIcon = L.divIcon({ className: 'lv-hub-marker', html: '<b>🎰</b>', iconSize: [40, 40], iconAnchor: [20, 20] });
         const logger = document.getElementById('output-log');
 
-        // Real-time dataset for Las Vegas Free Parking Locations
         const freeParkingSpots = [
             { id: 1, name: "Treasure Island (TI)", type: "Self-Park Garage", status: "100% Free", openSpots: 142, totalSpots: 450, lat: 36.1247, lng: -115.1721 },
             { id: 2, name: "Fashion Show Mall", type: "Covered Parking", status: "100% Free", openSpots: 289, totalSpots: 800, lat: 36.1275, lng: -115.1728 },
@@ -303,7 +343,6 @@
             startSimulatedRealTimeUpdates();
         });
 
-        // 1. National Overview Marker setup
         function setupLasVegasHubPin() {
             lvHubMarker = L.marker([36.1699, -115.1398], { icon: lvIcon })
                 .addTo(map)
@@ -320,10 +359,8 @@
             });
         }
 
-        // 2. Expand Map to Las Vegas View & Load Parking Areas
         function transitionToLasVegas() {
             activeViewMode = 'LV';
-            
             if (lvHubMarker) map.removeLayer(lvHubMarker);
 
             map.flyTo([36.1285, -115.1670], 14, { duration: 1.8 });
@@ -336,7 +373,6 @@
             document.getElementById('view-lv-btn').innerText = "Refresh Real-Time Availability";
         }
 
-        // 3. Reset View Back to Full US Map
         function resetToNationalView() {
             activeViewMode = 'US';
             clearParkingMarkers();
@@ -346,7 +382,7 @@
             }
 
             map.flyTo([39.8283, -98.5795], 4, { duration: 1.5 });
-            logger.innerHTML = `🇺🇸 <b>US Overview:</b> Tracking user location and Las Vegas Hub. Click the flashing 🎰 icon to view local parking.`;
+            logger.innerHTML = `🇺🇸 <b>US Overview:</b> Tracking location and Las Vegas Hub. Click the flashing 🎰 icon to view local parking.`;
             
             document.getElementById('parking-list-container').innerHTML = `
                 <div style="text-align:center; padding: 20px 0; color: rgba(255,255,255,0.7); font-size: 0.9rem;">
@@ -404,20 +440,58 @@
             parkingMarkers = [];
         }
 
-        // 4. Robust Real-Time GPS Location Handling with Auto-Fallback
+        // --- Geolocation & Manual Location Lookup ---
+        function handleSearchKeyPress(e) {
+            if (e.key === 'Enter') searchManualLocation();
+        }
+
+        function searchManualLocation() {
+            const query = document.getElementById('manual-location-input').value.trim();
+            if (!query) return;
+
+            logger.innerHTML = `🔍 Searching location: <b>"${query}"</b>...`;
+
+            fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`)
+                .then(res => res.json())
+                .then(data => {
+                    if (data && data.length > 0) {
+                        const lat = parseFloat(data[0].lat);
+                        const lon = parseFloat(data[0].lon);
+                        const displayName = data[0].display_name.split(',')[0];
+
+                        placeUserMarker(lat, lon, `📍 ${displayName}`);
+                        map.flyTo([lat, lon], 13, { duration: 1.5 });
+                        logger.innerHTML = `📍 <b>Location Set:</b> ${displayName}. Click Las Vegas View to check parking nearby.`;
+                    } else {
+                        logger.innerHTML = `⚠️ Location not found. Please try a different address or ZIP code.`;
+                    }
+                })
+                .catch(err => {
+                    logger.innerHTML = `⚠️ Error finding location. Please try again.`;
+                });
+        }
+
+        function placeUserMarker(lat, lng, popupText) {
+            if (userMarker) {
+                userMarker.setLatLng([lat, lng]);
+            } else {
+                userMarker = L.marker([lat, lng], { icon: userIcon }).addTo(map);
+            }
+            userMarker.bindPopup(`<b>${popupText}</b>`).openPopup();
+        }
+
         function initRealTimeUserLocation() {
             if (!navigator.geolocation) { 
-                logger.innerHTML = "❌ Geolocation is unsupported by your browser."; 
+                logger.innerHTML = "❌ Geolocation unsupported. Type your city/ZIP above to set location."; 
                 return; 
             }
 
             if (watchId !== null) navigator.geolocation.clearWatch(watchId);
 
-            // Try High Accuracy GPS first
             watchId = navigator.geolocation.watchPosition(
                 handlePositionSuccess,
                 handlePositionError,
-                { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+                { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 }
             );
         }
 
@@ -426,13 +500,7 @@
             const lng = pos.coords.longitude;
             const accuracy = pos.coords.accuracy;
 
-            if (userMarker) {
-                userMarker.setLatLng([lat, lng]);
-            } else {
-                userMarker = L.marker([lat, lng], { icon: userIcon })
-                    .addTo(map)
-                    .bindPopup("<b>📍 Your Real-Time Location</b>");
-            }
+            placeUserMarker(lat, lng, "📍 Your Real-Time Location");
 
             if (accuracyCircle) {
                 accuracyCircle.setLatLng([lat, lng]);
@@ -448,43 +516,23 @@
             }
 
             if (activeViewMode === 'US') {
-                logger.innerHTML = `📍 <b>Location detected!</b> Pinned on national overview map. Click Las Vegas icon to explore parking.`;
+                logger.innerHTML = `📍 <b>GPS active!</b> Pinned on national overview map. Or type a city/ZIP in the search box.`;
             }
         }
 
         function handlePositionError(err) {
-            if (err.code === err.TIMEOUT) {
-                logger.innerHTML = "⏳ GPS timing out. Retrying with standard location...";
-                navigator.geolocation.getCurrentPosition(
-                    handlePositionSuccess,
-                    (fallbackErr) => displayLocationErrorMessage(fallbackErr),
-                    { enableHighAccuracy: false, timeout: 15000, maximumAge: 60000 }
-                );
-            } else {
-                displayLocationErrorMessage(err);
-            }
-        }
-
-        function displayLocationErrorMessage(err) {
-            if (window.location.protocol !== 'https:' && window.location.hostname !== 'localhost') {
-                logger.innerHTML = `⚠️ <b>Location blocked:</b> Geolocation requires an HTTPS connection. Enforce HTTPS in your GitHub Pages settings.`;
-            } else if (err.code === err.PERMISSION_DENIED) {
-                logger.innerHTML = `⚠️ <b>Location permission denied:</b> Click the lock/settings icon in your address bar to allow location access.`;
-            } else {
-                logger.innerHTML = `⚠️ Location unavailable (${err.message}). Interactive map ready.`;
-            }
+            logger.innerHTML = `⚠️ <b>GPS Permission Denied / Unavailable.</b> Type your address or ZIP code in the box above to set your location manually!`;
         }
 
         function reCenterUserLocation() {
             if (userMarker) {
                 const pos = userMarker.getLatLng();
-                map.flyTo([pos.lat, pos.lng], 15, { duration: 1.2 });
+                map.flyTo([pos.lat, pos.lng], 14, { duration: 1.2 });
             } else {
                 initRealTimeUserLocation();
             }
         }
 
-        // Simulated background real-time updates for open parking spot counts
         function startSimulatedRealTimeUpdates() {
             setInterval(() => {
                 freeParkingSpots.forEach(spot => {
