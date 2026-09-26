@@ -225,6 +225,52 @@ footer a{color:var(--gold-soft);text-decoration:none;font-weight:600;}
   border-radius:50%;border:2px solid #fff;display:flex;align-items:center;
   justify-content:center;font-size:13px;box-shadow:0 2px 6px rgba(0,0,0,.4);
 }
+.marker-here{
+  background:#2f8bff;border:3px solid #fff;border-radius:50%;
+  box-shadow:0 0 0 4px rgba(47,139,255,.3);
+}
+
+/* ---------- navigate button on cards / popups ---------- */
+.spot-card{position:relative;}
+.spot-hint{font-size:.7rem;color:var(--teal);margin-top:6px;font-weight:600;}
+.btn-popup-nav{
+  margin-top:8px;padding:7px 12px;border:none;border-radius:7px;
+  background:var(--teal);color:#04211d;font-weight:700;font-size:.78rem;cursor:pointer;
+}
+
+/* ---------- voice navigation bar ---------- */
+#navPanel{
+  position:fixed;
+  left:50%;bottom:18px;
+  transform:translateX(-50%);
+  width:min(94vw,560px);
+  background:var(--card);
+  border:1px solid var(--gold);
+  border-radius:16px;
+  padding:16px 18px;
+  box-shadow:0 12px 40px rgba(0,0,0,.5);
+  z-index:2000;
+  display:none;
+}
+#navPanel.open{display:block;}
+.nav-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;}
+.nav-dest{font-weight:700;font-size:.95rem;}
+.nav-meta{font-size:.78rem;color:var(--muted);margin-top:2px;}
+.nav-controls{display:flex;gap:8px;flex:none;}
+.nav-icon-btn{
+  width:34px;height:34px;border-radius:9px;border:1px solid var(--line);
+  background:transparent;color:var(--text);cursor:pointer;font-size:.9rem;
+}
+.nav-icon-btn.muted{color:var(--danger);border-color:var(--danger);}
+.nav-instruction{
+  margin-top:12px;font-family:'Space Grotesk',sans-serif;font-size:1.05rem;font-weight:600;
+  color:var(--gold);line-height:1.4;
+}
+.nav-steps{
+  margin-top:10px;max-height:120px;overflow-y:auto;display:flex;flex-direction:column;gap:6px;
+}
+.nav-step-row{font-size:.78rem;color:var(--muted);padding:4px 0;border-bottom:1px solid rgba(255,255,255,.05);}
+.nav-step-row.current{color:var(--teal);font-weight:600;}
 </style>
 </head>
 <body>
@@ -272,6 +318,21 @@ footer a{color:var(--gold-soft);text-decoration:none;font-weight:600;}
   <p style="margin-top:6px;"><a href="privacy.html">Privacy Policy</a> · <a href="terms.html">Terms of Service</a></p>
   <p style="margin-top:6px;">&copy; 2026 ParkLV.com</p>
 </footer>
+
+<div id="navPanel">
+  <div class="nav-top">
+    <div>
+      <div class="nav-dest" id="navDestName">—</div>
+      <div class="nav-meta" id="navMeta">—</div>
+    </div>
+    <div class="nav-controls">
+      <button class="nav-icon-btn" id="muteBtn" onclick="toggleMute()" title="Mute voice">🔊</button>
+      <button class="nav-icon-btn" onclick="stopNavigation()" title="Stop navigation">✕</button>
+    </div>
+  </div>
+  <div class="nav-instruction" id="navInstruction">Getting your location…</div>
+  <div class="nav-steps" id="navSteps"></div>
+</div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
@@ -327,7 +388,8 @@ function renderParkingMarkers(){
     const icon = L.divIcon({ className:'marker-parking', html:'P', iconSize:[28,28], iconAnchor:[14,14] });
     return L.marker([spot.lat, spot.lng], { icon })
       .addTo(map)
-      .bindPopup(`<b>${spot.name}</b><br>${spot.type}<br>Est. ${Math.round(spot.pctFull)}% full`);
+      .bindPopup(`<b>${spot.name}</b><br>${spot.type}<br>Est. ${Math.round(spot.pctFull)}% full<br>
+        <button class="btn-popup-nav" onclick="startNavigation(${spot.id})">🔊 Navigate here</button>`);
   });
 }
 
@@ -345,7 +407,7 @@ function renderSidebar(){
       : '';
     const openPct = Math.max(5, 100 - spot.pctFull);
     return `
-      <div class="spot-card" onclick="focusSpot(${spot.lat},${spot.lng})">
+      <div class="spot-card" onclick="startNavigation(${spot.id})">
         <div class="spot-top">
           <span class="spot-name">${spot.name}</span>
           ${distText ? `<span class="spot-dist">${distText}</span>` : ''}
@@ -355,6 +417,7 @@ function renderSidebar(){
           <div class="avail-bar"><div class="avail-fill" style="width:${openPct}%;"></div></div>
           <span class="avail-label">${Math.round(openPct)}% est. open</span>
         </div>
+        <div class="spot-hint">🔊 Tap to start voice-guided directions</div>
       </div>`;
   }).join('');
 }
@@ -474,6 +537,178 @@ async function toggleChip(cat){
 
   poiLayers[cat].addTo(map);
   document.getElementById('statusText').innerText = `Showing ${cat}s near this view.`;
+}
+
+/* =========================================================
+   VOICE-GUIDED NAVIGATION (free OSRM routing + Web Speech API)
+========================================================= */
+
+let routeLine = null;
+let liveMarker = null;
+let navWatchId = null;
+let navSteps = [];
+let navStepIndex = 0;
+let navSpot = null;
+let voiceMuted = false;
+
+function speakInstruction(text){
+  document.getElementById('navInstruction').innerText = text;
+  if(voiceMuted || !('speechSynthesis' in window)) return;
+  window.speechSynthesis.cancel();
+  window.speechSynthesis.speak(new SpeechSynthesisUtterance(text));
+}
+
+function toggleMute(){
+  voiceMuted = !voiceMuted;
+  document.getElementById('muteBtn').innerText = voiceMuted ? '🔇' : '🔊';
+  document.getElementById('muteBtn').classList.toggle('muted', voiceMuted);
+  if(voiceMuted) window.speechSynthesis.cancel();
+}
+
+function getUserPosition(){
+  return new Promise((resolve, reject) => {
+    if(!navigator.geolocation){ reject(new Error('Geolocation not supported')); return; }
+    navigator.geolocation.getCurrentPosition(
+      pos => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+      err => reject(err),
+      { enableHighAccuracy:true, timeout:10000 }
+    );
+  });
+}
+
+function haversineMeters(lat1, lon1, lat2, lon2){
+  return haversineMiles(lat1, lon1, lat2, lon2) * 1609.34;
+}
+
+function formatDistance(meters){
+  if(meters < 160) return `${Math.round(meters * 3.281)} feet`;
+  return `${(meters / 1609.34).toFixed(1)} miles`;
+}
+
+function compassFromBearing(bearing){
+  const dirs = ['north','northeast','east','southeast','south','southwest','west','northwest'];
+  return dirs[Math.round(bearing / 45) % 8];
+}
+
+function instructionForStep(step){
+  const name = step.name || 'the road';
+  const type = step.maneuver.type;
+  const modifier = step.maneuver.modifier;
+  const distText = formatDistance(step.distance);
+
+  if(type === 'depart') return `Head ${compassFromBearing(step.maneuver.bearing_after)} on ${name} for ${distText}.`;
+  if(type === 'arrive') return `You have arrived — your parking garage is on your ${modifier || 'right'}.`;
+  if(type === 'turn' || type === 'end of road') return `Turn ${modifier} onto ${name}, then continue for ${distText}.`;
+  if(type === 'new name') return `Continue onto ${name} for ${distText}.`;
+  if(type === 'merge') return `Merge onto ${name} and continue for ${distText}.`;
+  if(type === 'fork') return `Keep ${modifier} at the fork onto ${name}.`;
+  if(type === 'roundabout' || type === 'rotary') return `At the roundabout, take the exit onto ${name}.`;
+  return `Continue on ${name} for ${distText}.`;
+}
+
+async function fetchRoute(start, end){
+  const url = `https://router.project-osrm.org/route/v1/driving/${start.lng},${start.lat};${end.lng},${end.lat}?overview=full&geometries=geojson&steps=true`;
+  const res = await fetch(url);
+  if(!res.ok) throw new Error('Routing service unavailable');
+  const data = await res.json();
+  if(!data.routes || !data.routes.length) throw new Error('No driving route found');
+  return data.routes[0];
+}
+
+function renderRouteLine(route){
+  if(routeLine) map.removeLayer(routeLine);
+  const latlngs = route.geometry.coordinates.map(c => [c[1], c[0]]);
+  routeLine = L.polyline(latlngs, { color: '#2fe0c8', weight: 5, opacity: 0.85 }).addTo(map);
+  map.fitBounds(routeLine.getBounds(), { padding: [40, 40] });
+}
+
+function renderNavSteps(){
+  const container = document.getElementById('navSteps');
+  container.innerHTML = navSteps.map((step, i) => `
+    <div class="nav-step-row ${i === navStepIndex ? 'current' : ''}">${instructionForStep(step)}</div>
+  `).join('');
+}
+
+async function startNavigation(spotId){
+  stopNavigation();
+
+  const spot = freeParkingSpots.find(s => s.id === spotId);
+  if(!spot) return;
+  navSpot = spot;
+
+  document.getElementById('navPanel').classList.add('open');
+  document.getElementById('navDestName').innerText = spot.name;
+  document.getElementById('navMeta').innerText = 'Finding your location…';
+  document.getElementById('navInstruction').innerText = 'One moment…';
+  document.getElementById('navSteps').innerHTML = '';
+
+  let start;
+  try{
+    start = await getUserPosition();
+  }catch(e){
+    document.getElementById('navMeta').innerText = 'Location unavailable';
+    document.getElementById('navInstruction').innerText =
+      'Turn on location access (or use the search bar above) so ParkLV can guide you turn by turn.';
+    return;
+  }
+
+  if(liveMarker) map.removeLayer(liveMarker);
+  liveMarker = L.marker([start.lat, start.lng], {
+    icon: L.divIcon({ className:'marker-here', iconSize:[18,18], iconAnchor:[9,9] })
+  }).addTo(map);
+
+  let route;
+  try{
+    route = await fetchRoute(start, { lat: spot.lat, lng: spot.lng });
+  }catch(e){
+    document.getElementById('navMeta').innerText = 'Routing failed';
+    document.getElementById('navInstruction').innerText = 'Could not calculate a driving route right now. Please try again.';
+    return;
+  }
+
+  navSteps = route.legs[0].steps;
+  navStepIndex = 0;
+
+  renderRouteLine(route);
+  renderNavSteps();
+
+  const miles = (route.distance / 1609.34).toFixed(1);
+  const mins = Math.round(route.duration / 60);
+  document.getElementById('navMeta').innerText = `${miles} mi • about ${mins} min drive`;
+
+  speakInstruction(instructionForStep(navSteps[0]));
+
+  navWatchId = navigator.geolocation.watchPosition(pos => {
+    const here = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+    if(liveMarker) liveMarker.setLatLng([here.lat, here.lng]);
+
+    const next = navSteps[navStepIndex + 1];
+    if(next){
+      const dist = haversineMeters(here.lat, here.lng, next.maneuver.location[1], next.maneuver.location[0]);
+      if(dist < 40){
+        navStepIndex++;
+        renderNavSteps();
+        speakInstruction(instructionForStep(navSteps[navStepIndex]));
+      }
+    } else {
+      const distToEnd = haversineMeters(here.lat, here.lng, spot.lat, spot.lng);
+      if(distToEnd < 30){
+        speakInstruction(`You've arrived at ${spot.name}.`);
+        stopNavigation();
+      }
+    }
+  }, () => {}, { enableHighAccuracy:true, maximumAge:2000 });
+}
+
+function stopNavigation(){
+  if(navWatchId !== null){ navigator.geolocation.clearWatch(navWatchId); navWatchId = null; }
+  if(routeLine){ map.removeLayer(routeLine); routeLine = null; }
+  if(liveMarker){ map.removeLayer(liveMarker); liveMarker = null; }
+  window.speechSynthesis.cancel();
+  navSteps = [];
+  navStepIndex = 0;
+  navSpot = null;
+  document.getElementById('navPanel').classList.remove('open');
 }
 
 /* -------- simulated (clearly-labeled) availability drift -------- */
