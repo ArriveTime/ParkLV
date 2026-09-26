@@ -22,6 +22,7 @@
   --muted:#93a1c0;
   --danger:#ff5470;
 }
+html{font-size:16px;}
 *{box-sizing:border-box;margin:0;padding:0;}
 body{
   font-family:'Inter',sans-serif;
@@ -48,8 +49,21 @@ header{
   display:flex;align-items:center;justify-content:center;
   font-weight:700;color:var(--ink);font-size:1.2rem;flex:none;
 }
-.brand-text h1{font-size:1.35rem;font-weight:700;letter-spacing:.2px;}
-.brand-text p{font-size:.82rem;color:var(--muted);margin-top:2px;}
+.brand-text h1{
+  font-size:clamp(1.5rem,4.5vw,2.1rem);
+  font-weight:700;
+  letter-spacing:.2px;
+  background:linear-gradient(90deg,var(--gold),var(--teal));
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+}
+.brand-text p{
+  font-size:clamp(.85rem,2.6vw,1.05rem);
+  color:var(--gold-soft);
+  font-weight:600;
+  margin-top:3px;
+  letter-spacing:.2px;
+}
 
 /* ---------- destination bar ---------- */
 .dest-bar{
@@ -128,6 +142,43 @@ header{
   width:100%;
 }
 @media(min-width:1000px){.layout{grid-template-columns:1fr 380px;}}
+
+/* ---------- mobile: bigger text, smaller map ---------- */
+@media(max-width:700px){
+  html{font-size:18px;}
+
+  header{padding:16px 16px;gap:10px;}
+  .mark{width:38px;height:38px;border-radius:10px;font-size:1.05rem;}
+
+  .dest-bar{padding:14px 16px;flex-direction:column;}
+  .dest-bar input,.dest-bar .btn{width:100%;}
+
+  .chip-row{padding:12px 16px;gap:6px;}
+  .chip{padding:9px 13px;font-size:.85rem;}
+
+  .layout{padding:14px 14px 22px;gap:14px;}
+
+  .map-shell{height:300px;border-radius:14px;}
+  .map-note{font-size:.72rem;max-width:80%;}
+
+  .sidebar{max-height:none;padding:16px;}
+  .sidebar h2{font-size:1.1rem;}
+  .sidebar .status{font-size:.88rem;}
+
+  .spot-list{max-height:none;overflow-y:visible;}
+  .spot-card{padding:14px 16px;}
+  .spot-name{font-size:1rem;}
+  .spot-type{font-size:.82rem;}
+  .spot-dist{font-size:.8rem;}
+  .avail-label{font-size:.78rem;}
+  .spot-hint{font-size:.78rem;}
+
+  #navPanel{width:94vw;bottom:12px;padding:14px 16px;}
+  .nav-instruction{font-size:1.1rem;}
+  .nav-meta{font-size:.85rem;}
+
+  footer{font-size:.85rem;padding:18px 16px;}
+}
 
 .map-shell{
   border-radius:16px;
@@ -278,8 +329,8 @@ footer a{color:var(--gold-soft);text-decoration:none;font-weight:600;}
 <header>
   <div class="mark">P</div>
   <div class="brand-text">
-    <h1>ParkLV</h1>
-    <p>Free parking near you, mapped across the Las Vegas Strip and Downtown.</p>
+    <h1>ParkLV.com</h1>
+    <p>Park Fast. Park Free. Park LV.</p>
   </div>
 </header>
 
