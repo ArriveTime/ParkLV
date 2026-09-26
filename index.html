@@ -1,820 +1,491 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Park Fast. Park Free. Park LV.</title>
-    <!-- Leaflet Open-Source Mapping CSS -->
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <style>
-        :root {
-            --bg-gold: #ffd700;
-            --text-blue: #0d47a1;
-            --text-light: #ffffff;
-            --map-bg-white: #ffffff;
-            --border-color: #bbdefb;
-            --card-bg: #ffffff;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ParkLV — Free Parking, Las Vegas</title>
 
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: sans-serif; }
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 
-        body {
-            background-color: var(--bg-gold);
-            background-image: 
-                linear-gradient(to bottom, rgba(255, 215, 0, 0.85), rgba(255, 215, 0, 0.95)),
-                url('https://images.unsplash.com/photo-1605035012319-110213f4525c?q=80&w=2000');
-            background-size: cover;
-            background-position: center;
-            background-attachment: fixed;
-            color: var(--text-blue);
-            display: flex;
-            flex-direction: column;
-            min-height: 100vh;
-        }
+<style>
+:root{
+  --ink:#0b1220;
+  --ink-2:#121b30;
+  --card:#16213b;
+  --line:rgba(244,196,48,.22);
+  --gold:#f4c430;
+  --gold-soft:#caa32a;
+  --teal:#2fe0c8;
+  --text:#eef2fb;
+  --muted:#93a1c0;
+  --danger:#ff5470;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{
+  font-family:'Inter',sans-serif;
+  background:var(--ink);
+  color:var(--text);
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+}
+h1,h2,h3,.display{font-family:'Space Grotesk',sans-serif;}
 
-        header {
-            text-align: center;
-            padding: 25px 20px;
-            border-bottom: 2px solid var(--border-color);
-            background-color: rgba(255, 215, 0, 0.9);
-        }
+/* ---------- header ---------- */
+header{
+  padding:22px 28px;
+  display:flex;
+  align-items:center;
+  gap:14px;
+  border-bottom:1px solid var(--line);
+  background:linear-gradient(180deg,#0e1730,#0b1220);
+}
+.mark{
+  width:42px;height:42px;border-radius:12px;
+  background:radial-gradient(circle at 30% 30%,var(--gold),var(--gold-soft));
+  display:flex;align-items:center;justify-content:center;
+  font-weight:700;color:var(--ink);font-size:1.2rem;flex:none;
+}
+.brand-text h1{font-size:1.35rem;font-weight:700;letter-spacing:.2px;}
+.brand-text p{font-size:.82rem;color:var(--muted);margin-top:2px;}
 
-        .logo-title { font-size: 2.4rem; font-weight: 900; text-transform: uppercase; color: var(--text-blue); }
+/* ---------- destination bar ---------- */
+.dest-bar{
+  padding:18px 28px;
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  border-bottom:1px solid var(--line);
+  background:var(--ink-2);
+}
+.dest-bar input{
+  flex:1;
+  min-width:240px;
+  padding:13px 16px;
+  border-radius:10px;
+  border:1px solid var(--line);
+  background:var(--ink);
+  color:var(--text);
+  font-size:.95rem;
+  outline:none;
+}
+.dest-bar input::placeholder{color:var(--muted);}
+.dest-bar input:focus{border-color:var(--gold);}
+.btn{
+  padding:13px 20px;
+  border-radius:10px;
+  border:none;
+  font-weight:600;
+  font-size:.9rem;
+  cursor:pointer;
+  transition:transform .1s, opacity .15s;
+}
+.btn:hover{opacity:.92;}
+.btn:active{transform:translateY(1px);}
+.btn-gold{background:var(--gold);color:var(--ink);}
+.btn-ghost{background:transparent;color:var(--text);border:1px solid var(--line);}
 
-        .top-toolbar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 12px;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
+/* ---------- category chips ---------- */
+.chip-row{
+  padding:14px 28px;
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  border-bottom:1px solid var(--line);
+}
+.chip{
+  padding:8px 14px;
+  border-radius:999px;
+  border:1px solid var(--line);
+  background:transparent;
+  color:var(--muted);
+  font-size:.82rem;
+  font-weight:600;
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  gap:6px;
+  transition:.15s;
+}
+.chip.active{
+  border-color:var(--gold);
+  color:var(--gold);
+  background:rgba(244,196,48,.08);
+}
+.chip .dot{width:7px;height:7px;border-radius:50%;background:currentColor;}
 
-        .search-box-container {
-            display: flex;
-            gap: 6px;
-            flex: 1;
-            min-width: 260px;
-        }
+/* ---------- layout ---------- */
+.layout{
+  flex:1;
+  display:grid;
+  grid-template-columns:1fr;
+  gap:18px;
+  padding:20px 28px 28px;
+  max-width:1500px;
+  margin:0 auto;
+  width:100%;
+}
+@media(min-width:1000px){.layout{grid-template-columns:1fr 380px;}}
 
-        .manual-input {
-            flex: 1;
-            padding: 10px 14px;
-            border-radius: 8px;
-            border: 2px solid var(--text-blue);
-            font-size: 0.9rem;
-            outline: none;
-            font-weight: 600;
-        }
+.map-shell{
+  border-radius:16px;
+  overflow:hidden;
+  border:1px solid var(--line);
+  height:600px;
+  position:relative;
+}
+#map{height:100%;width:100%;}
 
-        .manual-input:focus {
-            border-color: #2e7d32;
-            box-shadow: 0 0 0 2px rgba(46, 125, 50, 0.2);
-        }
+.map-note{
+  position:absolute;
+  bottom:10px;left:10px;
+  background:rgba(11,18,32,.85);
+  border:1px solid var(--line);
+  color:var(--muted);
+  font-size:.72rem;
+  padding:6px 10px;
+  border-radius:8px;
+  z-index:500;
+  max-width:260px;
+}
 
-        .btn-search {
-            background-color: #2e7d32;
-            color: white;
-            border: none;
-            padding: 10px 16px;
-            border-radius: 8px;
-            font-weight: bold;
-            cursor: pointer;
-            text-transform: uppercase;
-            font-size: 0.85rem;
-            transition: opacity 0.2s;
-        }
+/* ---------- sidebar ---------- */
+.sidebar{
+  background:var(--card);
+  border:1px solid var(--line);
+  border-radius:16px;
+  padding:20px;
+  display:flex;
+  flex-direction:column;
+  gap:14px;
+  max-height:600px;
+}
+.sidebar h2{font-size:1rem;font-weight:600;}
+.sidebar .status{font-size:.82rem;color:var(--muted);line-height:1.5;}
 
-        .btn-search:hover { opacity: 0.9; }
+.spot-list{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  overflow-y:auto;
+  padding-right:4px;
+}
+.spot-card{
+  background:var(--ink-2);
+  border:1px solid var(--line);
+  border-radius:12px;
+  padding:12px 14px;
+  cursor:pointer;
+  transition:border-color .15s;
+}
+.spot-card:hover{border-color:var(--gold);}
+.spot-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px;}
+.spot-name{font-weight:600;font-size:.92rem;}
+.spot-dist{font-size:.75rem;color:var(--teal);font-weight:600;white-space:nowrap;}
+.spot-type{font-size:.76rem;color:var(--muted);margin-top:2px;}
+.avail-row{display:flex;align-items:center;gap:8px;margin-top:8px;}
+.avail-bar{flex:1;height:6px;border-radius:4px;background:rgba(255,255,255,.08);overflow:hidden;}
+.avail-fill{height:100%;background:var(--teal);border-radius:4px;transition:width .4s;}
+.avail-label{font-size:.72rem;color:var(--muted);white-space:nowrap;}
 
-        .main-container {
-            flex: 1;
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 20px;
-            padding: 20px;
-            max-width: 1400px;
-            margin: 0 auto;
-            width: 100%;
-        }
+.disclaimer{
+  font-size:.7rem;
+  color:var(--muted);
+  line-height:1.5;
+  border-top:1px solid var(--line);
+  padding-top:10px;
+}
 
-        @media (min-width: 992px) { .main-container { grid-template-columns: 1fr 400px; } }
+footer{
+  text-align:center;
+  padding:20px;
+  font-size:.78rem;
+  color:var(--muted);
+  border-top:1px solid var(--line);
+}
+footer a{color:var(--gold-soft);text-decoration:none;font-weight:600;}
 
-        .btn-toolbar {
-            background-color: var(--text-blue);
-            color: var(--text-light);
-            border: 2px solid transparent;
-            padding: 10px 16px;
-            border-radius: 8px;
-            font-weight: bold;
-            cursor: pointer;
-            text-transform: uppercase;
-            font-size: 0.85rem;
-            transition: opacity 0.2s, border-color 0.2s;
-        }
-
-        .btn-toolbar:hover { opacity: 0.9; }
-
-        .btn-toolbar-vegas {
-            background-color: var(--text-blue);
-            color: var(--bg-gold);
-            border: 2px solid var(--bg-gold);
-        }
-
-        .map-panel {
-            background-color: var(--map-bg-white);
-            border-radius: 16px;
-            border: 4px solid var(--text-blue) !important;
-            height: 580px;
-            position: relative;
-            overflow: hidden;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
-        }
-        #map { height: 100%; width: 100%; }
-
-        .control-panel {
-            background-color: var(--text-blue);
-            color: var(--text-light);
-            border-radius: 16px;
-            padding: 25px;
-            display: flex;
-            flex-direction: column;
-            gap: 18px;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
-            max-height: 640px;
-            overflow: hidden;
-        }
-
-        .panel-header {
-            font-size: 1.3rem;
-            font-weight: 800;
-            text-transform: uppercase;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .live-badge {
-            background-color: #2e7d32;
-            color: #fff;
-            font-size: 0.75rem;
-            padding: 4px 10px;
-            border-radius: 12px;
-            font-weight: 700;
-            letter-spacing: 0.5px;
-            animation: blink 2s infinite;
-        }
-
-        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
-
-        .spot-list {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            overflow-y: auto;
-            padding-right: 5px;
-            margin-top: 5px;
-        }
-
-        .spot-card {
-            background-color: var(--card-bg);
-            color: #333;
-            border-radius: 10px;
-            padding: 12px 14px;
-            cursor: pointer;
-            border-left: 5px solid #2e7d32;
-            transition: transform 0.15s, box-shadow 0.15s;
-        }
-
-        .spot-card:hover {
-            transform: translateX(4px);
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-        }
-
-        .spot-title { font-weight: 800; color: var(--text-blue); font-size: 0.95rem; margin-bottom: 4px; }
-        .spot-info { font-size: 0.82rem; color: #555; display: flex; justify-content: space-between; }
-        .spot-count { font-weight: 800; color: #2e7d32; }
-
-        .btn-action {
-            background-color: var(--bg-gold);
-            color: var(--text-blue);
-            border: none;
-            padding: 14px;
-            border-radius: 8px;
-            font-weight: 800;
-            text-transform: uppercase;
-            cursor: pointer;
-            transition: transform 0.1s, opacity 0.2s;
-        }
-
-        .btn-action:hover { opacity: 0.95; transform: translateY(-1px); }
-
-        .status-box { 
-            background-color: rgba(255, 255, 255, 0.1); 
-            padding: 12px; 
-            border-radius: 8px; 
-            font-size: 0.85rem;
-            line-height: 1.35;
-        }
-        
-        .user-location-marker {
-            background-color: var(--text-blue);
-            border: 3px solid var(--bg-gold);
-            border-radius: 50%;
-            animation: pulse-blue 2s infinite;
-        }
-
-        .lv-hub-marker {
-            background-color: #ffd700;
-            color: #0d47a1;
-            border: 3px solid #0d47a1;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 18px;
-            cursor: pointer;
-            animation: pulse-gold 1.8s infinite;
-        }
-
-        .parking-spot-marker {
-            background-color: #2e7d32;
-            color: #ffffff;
-            border: 2px solid #ffffff;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 900;
-            font-size: 13px;
-            box-shadow: 0 3px 8px rgba(0,0,0,0.4);
-            cursor: pointer;
-        }
-
-        @keyframes pulse-blue {
-            0% { box-shadow: 0 0 0 0 rgba(13, 71, 161, 0.7); }
-            70% { box-shadow: 0 0 0 16px rgba(13, 71, 161, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(13, 71, 161, 0); }
-        }
-
-        @keyframes pulse-gold {
-            0% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0.9); }
-            70% { box-shadow: 0 0 0 20px rgba(255, 215, 0, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(255, 215, 0, 0); }
-        }
-
-        /* Modal Overlay for Admin Portal */
-        .admin-modal-overlay {
-            display: none;
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0, 0, 0, 0.75);
-            z-index: 9999;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
-
-        .admin-modal-content {
-            background: #ffffff;
-            color: #333;
-            width: 100%;
-            max-width: 750px;
-            border-radius: 12px;
-            padding: 24px;
-            border: 4px solid var(--text-blue);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-            max-height: 85vh;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .admin-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 2px solid #eee;
-            padding-bottom: 12px;
-            margin-bottom: 15px;
-        }
-
-        .admin-title { font-size: 1.4rem; font-weight: 900; color: var(--text-blue); }
-
-        .btn-close-modal {
-            background: #d32f2f;
-            color: white;
-            border: none;
-            padding: 6px 14px;
-            border-radius: 6px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        .admin-stats-summary {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 15px;
-        }
-
-        .stat-card-box {
-            flex: 1;
-            background: #f0f4f9;
-            border: 1px solid #bbdefb;
-            border-radius: 8px;
-            padding: 12px;
-            text-align: center;
-        }
-
-        .stat-card-num { font-size: 1.6rem; font-weight: 900; color: var(--text-blue); }
-        .stat-card-lbl { font-size: 0.75rem; text-transform: uppercase; color: #666; font-weight: bold; }
-
-        .visitor-table-container {
-            overflow-y: auto;
-            flex: 1;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-        }
-
-        .visitor-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 0.85rem;
-        }
-
-        .visitor-table th {
-            background: var(--text-blue);
-            color: white;
-            padding: 10px;
-            text-align: left;
-            position: sticky;
-            top: 0;
-        }
-
-        .visitor-table td {
-            padding: 8px 10px;
-            border-bottom: 1px solid #eee;
-        }
-
-        .visitor-table tr:nth-child(even) { background: #f9f9f9; }
-
-        .btn-reset-counter {
-            background: #d32f2f;
-            color: white;
-            border: none;
-            padding: 10px 18px;
-            border-radius: 6px;
-            font-weight: bold;
-            cursor: pointer;
-            margin-top: 15px;
-            align-self: flex-start;
-        }
-
-        .btn-reset-counter:hover { opacity: 0.9; }
-    </style>
+/* ---------- leaflet marker skins ---------- */
+.marker-dest{
+  background:var(--danger);border:3px solid #fff;border-radius:50%;
+  box-shadow:0 0 0 4px rgba(255,84,112,.25);
+}
+.marker-user{
+  background:#2f8bff;border:3px solid #fff;border-radius:50%;
+  box-shadow:0 0 0 4px rgba(47,139,255,.25);
+}
+.marker-parking{
+  background:var(--teal);color:#04211d;border:2px solid #fff;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;font-weight:800;font-size:12px;
+  box-shadow:0 2px 8px rgba(0,0,0,.4);
+}
+.marker-poi{
+  border-radius:50%;border:2px solid #fff;display:flex;align-items:center;
+  justify-content:center;font-size:13px;box-shadow:0 2px 6px rgba(0,0,0,.4);
+}
+</style>
 </head>
 <body>
 
-    <header>
-        <h1 class="logo-title">Park Fast. Park Free. Park LV.</h1>
-    </header>
+<header>
+  <div class="mark">P</div>
+  <div class="brand-text">
+    <h1>ParkLV</h1>
+    <p>Free parking near you, mapped across the Las Vegas Strip and Downtown.</p>
+  </div>
+</header>
 
-    <div class="main-container">
-        <div class="map-wrapper">
-            <div class="top-toolbar">
-                <button class="btn-toolbar" onclick="resetToNationalView()">🇺🇸 US National View</button>
-                <button class="btn-toolbar" onclick="reCenterUserLocation()">📍 My GPS Location</button>
-                <button class="btn-toolbar btn-toolbar-vegas" onclick="transitionToLasVegas()">🎰 Expanded Las Vegas View</button>
-                
-                <div class="search-box-container">
-                    <input type="text" id="manual-location-input" class="manual-input" placeholder="Type city, address, or ZIP..." onkeypress="handleSearchKeyPress(event)">
-                    <button class="btn-search" onclick="searchManualLocation()">Go</button>
-                </div>
-            </div>
-            <div class="map-panel">
-                <div id="map"></div>
-            </div>
-        </div>
+<div class="dest-bar">
+  <input id="destInput" type="text" placeholder="Where are you headed? Try a casino name, address, or ZIP…" onkeypress="if(event.key==='Enter')findNearestToDestination()">
+  <button class="btn btn-gold" onclick="findNearestToDestination()">Find nearest free parking</button>
+  <button class="btn btn-ghost" onclick="useMyLocation()">Use my location</button>
+</div>
 
-        <div class="control-panel">
-            <div class="panel-header">
-                <span>Free Parking Hubs</span>
-                <span class="live-badge" id="live-indicator">LIVE</span>
-            </div>
+<div class="chip-row" id="chipRow">
+  <button class="chip active" data-cat="parking" onclick="toggleChip('parking')"><span class="dot" style="color:#2fe0c8"></span>Free parking</button>
+  <button class="chip" data-cat="casino" onclick="toggleChip('casino')"><span class="dot" style="color:#f4c430"></span>Casinos</button>
+  <button class="chip" data-cat="restaurant" onclick="toggleChip('restaurant')"><span class="dot" style="color:#ff8a3d"></span>Restaurants</button>
+  <button class="chip" data-cat="nightlife" onclick="toggleChip('nightlife')"><span class="dot" style="color:#c86bff"></span>Nightlife</button>
+  <button class="chip" data-cat="hotel" onclick="toggleChip('hotel')"><span class="dot" style="color:#4fa3ff"></span>Hotels</button>
+</div>
 
-            <div class="status-box" id="output-log">
-                Detecting location... If prompted, select Allow or type your city/ZIP above.
-            </div>
+<div class="layout">
+  <div class="map-shell">
+    <div id="map"></div>
+    <div class="map-note">Toggle the chips above to show casinos, restaurants, nightlife and hotels around the current map view.</div>
+  </div>
 
-            <button class="btn-action" id="view-lv-btn" onclick="transitionToLasVegas()">Expand Las Vegas Free Parking</button>
-
-            <div class="spot-list" id="parking-list-container">
-                <div style="text-align:center; padding: 20px 0; color: rgba(255,255,255,0.7); font-size: 0.9rem;">
-                    Click the flashing Las Vegas pin on the map or the button above to view real-time free parking locations.
-                </div>
-            </div>
-        </div>
+  <div class="sidebar">
+    <h2 id="listTitle">Free parking, Las Vegas Strip</h2>
+    <div class="status" id="statusText">Type a destination above, or use your location, to sort these by distance.</div>
+    <div class="spot-list" id="spotList"></div>
+    <div class="disclaimer">
+      Availability percentages are estimated from typical patterns for each garage, not a live sensor feed. Always confirm current parking policy with the venue. Straight-line distances shown; actual driving distance may differ. Map data © <a href="https://www.openstreetmap.org/copyright" style="color:var(--gold-soft)">OpenStreetMap</a> contributors.
     </div>
+  </div>
+</div>
 
-    <!-- Hidden Admin Portal Modal (Counters Visible ONLY Here) -->
-    <div class="admin-modal-overlay" id="adminModal">
-        <div class="admin-modal-content">
-            <div class="admin-header">
-                <div class="admin-title">🔒 Real-Time Visitor Analytics</div>
-                <button class="btn-close-modal" onclick="closeAdminPortal()">Close</button>
-            </div>
+<footer>
+  <p>ParkLV.com is an independent parking information service and is not affiliated with any casino or venue named.</p>
+  <p style="margin-top:6px;"><a href="privacy.html">Privacy Policy</a> · <a href="terms.html">Terms of Service</a></p>
+  <p style="margin-top:6px;">&copy; 2026 ParkLV.com</p>
+</footer>
 
-            <div class="admin-stats-summary">
-                <div class="stat-card-box">
-                    <div class="stat-card-num" id="totalVisitorCount">0</div>
-                    <div class="stat-card-lbl">Total Logged Visitors</div>
-                </div>
-                <div class="stat-card-box">
-                    <div class="stat-card-num" id="activeTodayCount">0</div>
-                    <div class="stat-card-lbl">Tracked Session Events</div>
-                </div>
-            </div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const LV_CENTER = [36.1147, -115.1728];
+const map = L.map('map', { zoomControl:true }).setView(LV_CENTER, 14);
+L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+  maxZoom:19,
+  attribution:'&copy; OpenStreetMap contributors'
+}).addTo(map);
 
-            <div class="visitor-table-container">
-                <table class="visitor-table">
-                    <thead>
-                        <tr>
-                            <th>Date & Day</th>
-                            <th>Time</th>
-                            <th>City & State</th>
-                            <th>IP Address</th>
-                        </tr>
-                    </thead>
-                    <tbody id="visitorTableBody">
-                        <!-- Visitor rows rendered here in descending order -->
-                    </tbody>
-                </table>
-            </div>
+/* -------- known free parking garages -------- */
+const freeParkingSpots = [
+  { id:1, name:"Treasure Island (TI)", type:"Self-park garage — free", lat:36.1247, lng:-115.1721, capacity:450 },
+  { id:2, name:"Fashion Show Mall", type:"Covered parking — free", lat:36.1275, lng:-115.1728, capacity:800 },
+  { id:3, name:"SAHARA Las Vegas", type:"Self-park structure — free", lat:36.1422, lng:-115.1565, capacity:350 },
+  { id:4, name:"Circus Circus", type:"Self-park lot & garage — free", lat:36.1368, lng:-115.1633, capacity:600 },
+  { id:5, name:"The Venetian / Palazzo", type:"Self-park — free with status/promo", lat:36.1212, lng:-115.1689, capacity:500 },
+  { id:6, name:"Wynn & Encore", type:"Self-park — free first 3 hours", lat:36.1266, lng:-115.1658, capacity:700 }
+];
+freeParkingSpots.forEach(s => s.pctFull = 30 + Math.random()*40);
 
-            <button class="btn-reset-counter" onclick="resetVisitorCounter()">Reset Counter & Logs</button>
+let parkingMarkers = [];
+let destMarker = null;
+let userMarker = null;
+let destLatLng = null;
+
+const poiLayers = { casino:L.layerGroup(), restaurant:L.layerGroup(), nightlife:L.layerGroup(), hotel:L.layerGroup() };
+const poiLoaded = { casino:false, restaurant:false, nightlife:false, hotel:false };
+const poiStyle = {
+  casino:{color:'#f4c430', icon:'🎰'},
+  restaurant:{color:'#ff8a3d', icon:'🍽️'},
+  nightlife:{color:'#c86bff', icon:'🎧'},
+  hotel:{color:'#4fa3ff', icon:'🏨'}
+};
+const overpassTag = {
+  casino:'node["amenity"="casino"]',
+  restaurant:'node["amenity"~"restaurant|fast_food"]',
+  nightlife:'node["amenity"~"nightclub|bar|pub"]',
+  hotel:'node["tourism"="hotel"]'
+};
+
+function haversineMiles(lat1, lon1, lat2, lon2){
+  const R = 3958.8;
+  const toRad = d => d * Math.PI/180;
+  const dLat = toRad(lat2-lat1), dLon = toRad(lon2-lon1);
+  const a = Math.sin(dLat/2)**2 + Math.cos(toRad(lat1))*Math.cos(toRad(lat2))*Math.sin(dLon/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+function renderParkingMarkers(){
+  parkingMarkers.forEach(m => map.removeLayer(m));
+  parkingMarkers = freeParkingSpots.map(spot => {
+    const icon = L.divIcon({ className:'marker-parking', html:'P', iconSize:[28,28], iconAnchor:[14,14] });
+    return L.marker([spot.lat, spot.lng], { icon })
+      .addTo(map)
+      .bindPopup(`<b>${spot.name}</b><br>${spot.type}<br>Est. ${Math.round(spot.pctFull)}% full`);
+  });
+}
+
+function renderSidebar(){
+  const list = document.getElementById('spotList');
+  const sorted = [...freeParkingSpots].sort((a,b) => {
+    if(!destLatLng) return 0;
+    return haversineMiles(destLatLng.lat, destLatLng.lng, a.lat, a.lng)
+         - haversineMiles(destLatLng.lat, destLatLng.lng, b.lat, b.lng);
+  });
+
+  list.innerHTML = sorted.map(spot => {
+    const distText = destLatLng
+      ? `${haversineMiles(destLatLng.lat, destLatLng.lng, spot.lat, spot.lng).toFixed(1)} mi`
+      : '';
+    const openPct = Math.max(5, 100 - spot.pctFull);
+    return `
+      <div class="spot-card" onclick="focusSpot(${spot.lat},${spot.lng})">
+        <div class="spot-top">
+          <span class="spot-name">${spot.name}</span>
+          ${distText ? `<span class="spot-dist">${distText}</span>` : ''}
         </div>
-    </div>
+        <div class="spot-type">${spot.type}</div>
+        <div class="avail-row">
+          <div class="avail-bar"><div class="avail-fill" style="width:${openPct}%;"></div></div>
+          <span class="avail-label">${Math.round(openPct)}% est. open</span>
+        </div>
+      </div>`;
+  }).join('');
+}
 
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script>
-        // Set initial view to entire US
-        let map = L.map('map').setView([39.8283, -98.5795], 4);
-        
-        L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            maxZoom: 19,
-            attribution: '&copy; OpenStreetMap contributors'
-        }).addTo(map);
+function focusSpot(lat, lng){ map.flyTo([lat,lng], 17, { duration:1 }); }
 
-        let userMarker;
-        let accuracyCircle;
-        let watchId = null;
-        let parkingMarkers = [];
-        let lvHubMarker;
-        let activeViewMode = 'US';
+/* -------- destination search -------- */
+function findNearestToDestination(){
+  const query = document.getElementById('destInput').value.trim();
+  if(!query) return;
+  document.getElementById('statusText').innerText = `Searching for "${query}"…`;
 
-        const userIcon = L.divIcon({ className: 'user-location-marker', iconSize: [22, 22], iconAnchor: [11, 11] });
-        const lvIcon = L.divIcon({ className: 'lv-hub-marker', html: '<b>🎰</b>', iconSize: [40, 40], iconAnchor: [20, 20] });
-        const logger = document.getElementById('output-log');
+  fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query + ' Las Vegas')}`)
+    .then(r => r.json())
+    .then(data => {
+      if(!data.length){
+        document.getElementById('statusText').innerText = `Couldn't find "${query}". Try a more specific address.`;
+        return;
+      }
+      const place = data[0];
+      destLatLng = { lat: parseFloat(place.lat), lng: parseFloat(place.lon) };
 
-        const freeParkingSpots = [
-            { id: 1, name: "Treasure Island (TI)", type: "Self-Park Garage", status: "100% Free", openSpots: 142, totalSpots: 450, lat: 36.1247, lng: -115.1721 },
-            { id: 2, name: "Fashion Show Mall", type: "Covered Parking", status: "100% Free", openSpots: 289, totalSpots: 800, lat: 36.1275, lng: -115.1728 },
-            { id: 3, name: "SAHARA Las Vegas", type: "Self-Park Structure", status: "100% Free", openSpots: 98, totalSpots: 350, lat: 36.1422, lng: -115.1565 },
-            { id: 4, name: "Circus Circus", type: "Self-Park Lot & Garage", status: "100% Free", openSpots: 215, totalSpots: 600, lat: 36.1368, lng: -115.1633 },
-            { id: 5, name: "The Venetian / Palazzo", type: "Self-Park (Select Promos/Status)", status: "Conditional Free", openSpots: 64, totalSpots: 500, lat: 36.1212, lng: -115.1689 },
-            { id: 6, name: "Wynn & Encore", type: "Self-Park (First 3 Hours Free)", status: "Timed Free", openSpots: 175, totalSpots: 700, lat: 36.1266, lng: -115.1658 }
-        ];
+      if(destMarker) map.removeLayer(destMarker);
+      destMarker = L.marker([destLatLng.lat, destLatLng.lng], {
+        icon: L.divIcon({ className:'marker-dest', iconSize:[20,20], iconAnchor:[10,10] })
+      }).addTo(map).bindPopup(`<b>Destination</b><br>${place.display_name.split(',')[0]}`).openPopup();
 
-        window.addEventListener('DOMContentLoaded', () => {
-            setupLasVegasHubPin();
-            initRealTimeUserLocation();
-            startSimulatedRealTimeUpdates();
-            initVisitorTracking();
-        });
+      map.flyTo([destLatLng.lat, destLatLng.lng], 15, { duration:1.2 });
 
-        // Key Listener for Secret Shortcut (Ctrl + Shift + A)
-        document.addEventListener('keydown', function(e) {
-            if (e.ctrlKey && e.shiftKey && (e.key === 'A' || e.key === 'a')) {
-                e.preventDefault();
-                promptAdminPortal();
-            }
-        });
+      document.getElementById('listTitle').innerText = 'Nearest free parking';
+      document.getElementById('statusText').innerText = `Sorted by distance from ${place.display_name.split(',')[0]}.`;
+      renderSidebar();
+    })
+    .catch(() => {
+      document.getElementById('statusText').innerText = 'Search failed — check your connection and try again.';
+    });
+}
 
-        function setupLasVegasHubPin() {
-            lvHubMarker = L.marker([36.1699, -115.1398], { icon: lvIcon })
-                .addTo(map)
-                .bindPopup(`
-                    <div style="text-align:center;">
-                        <b style="color:#0d47a1;font-size:1.05rem;">🎰 Las Vegas Free Parking Hub</b><br>
-                        <span style="font-size:0.85rem;color:#555;">Click to convert map & view expanded live parking spots</span><br><br>
-                        <button onclick="transitionToLasVegas()" style="background:#0d47a1;color:#fff;border:none;padding:8px 14px;border-radius:6px;font-weight:bold;cursor:pointer;">Expand Las Vegas Map</button>
-                    </div>
-                `);
+function useMyLocation(){
+  if(!navigator.geolocation){
+    document.getElementById('statusText').innerText = 'Geolocation is not supported on this device.';
+    return;
+  }
+  navigator.geolocation.getCurrentPosition(pos => {
+    destLatLng = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+    if(userMarker) map.removeLayer(userMarker);
+    userMarker = L.marker([destLatLng.lat, destLatLng.lng], {
+      icon: L.divIcon({ className:'marker-user', iconSize:[20,20], iconAnchor:[10,10] })
+    }).addTo(map).bindPopup('<b>Your location</b>').openPopup();
 
-            lvHubMarker.on('click', () => {
-                transitionToLasVegas();
-            });
-        }
+    map.flyTo([destLatLng.lat, destLatLng.lng], 15, { duration:1.2 });
+    document.getElementById('listTitle').innerText = 'Nearest free parking';
+    document.getElementById('statusText').innerText = 'Sorted by distance from your current location.';
+    renderSidebar();
+  }, () => {
+    document.getElementById('statusText').innerText = 'Location permission denied. Try the search box instead.';
+  });
+}
 
-        function transitionToLasVegas() {
-            activeViewMode = 'LV';
-            if (lvHubMarker) map.removeLayer(lvHubMarker);
+/* -------- venue layers (casinos / restaurants / nightlife / hotels) -------- */
+async function loadPOICategory(cat){
+  const center = map.getCenter();
+  const query = `[out:json][timeout:25];(${overpassTag[cat]}(around:2500,${center.lat},${center.lng}););out body 40;`;
+  const res = await fetch('https://overpass-api.de/api/interpreter', {
+    method:'POST',
+    body:'data=' + encodeURIComponent(query)
+  });
+  if(!res.ok) throw new Error('Venue lookup failed');
+  const data = await res.json();
+  const style = poiStyle[cat];
 
-            map.flyTo([36.1285, -115.1670], 14, { duration: 1.8 });
+  (data.elements || []).filter(el => el.tags && el.tags.name).forEach(el => {
+    const icon = L.divIcon({
+      className:'marker-poi',
+      html:style.icon,
+      iconSize:[26,26],
+      iconAnchor:[13,13],
+      style:`background:${style.color};`
+    });
+    L.marker([el.lat, el.lon], { icon: icon })
+      .addTo(poiLayers[cat])
+      .bindPopup(`<b>${el.tags.name}</b>`);
+  });
+}
 
-            clearParkingMarkers();
-            renderParkingSpots();
-            renderSidebarList();
+async function toggleChip(cat){
+  const chip = document.querySelector(`.chip[data-cat="${cat}"]`);
 
-            logger.innerHTML = `✅ <b>Las Vegas Map Expanded!</b> Showing live availability for <b>${freeParkingSpots.length} free parking hubs</b>.`;
-            document.getElementById('view-lv-btn').innerText = "Refresh Real-Time Availability";
-        }
+  if(cat === 'parking'){
+    chip.classList.toggle('active');
+    if(map.hasLayer(parkingMarkers[0])) {
+      parkingMarkers.forEach(m => map.removeLayer(m));
+    } else {
+      parkingMarkers.forEach(m => m.addTo(map));
+    }
+    return;
+  }
 
-        function resetToNationalView() {
-            activeViewMode = 'US';
-            clearParkingMarkers();
-            
-            if (!map.hasLayer(lvHubMarker)) {
-                lvHubMarker.addTo(map);
-            }
+  const isActive = chip.classList.toggle('active');
 
-            map.flyTo([39.8283, -98.5795], 4, { duration: 1.5 });
-            logger.innerHTML = `🇺🇸 <b>US Overview:</b> Tracking location and Las Vegas Hub. Click the flashing 🎰 icon to view local parking.`;
-            
-            document.getElementById('parking-list-container').innerHTML = `
-                <div style="text-align:center; padding: 20px 0; color: rgba(255,255,255,0.7); font-size: 0.9rem;">
-                    Click the flashing Las Vegas pin on the map or the button above to view real-time free parking locations.
-                </div>
-            `;
-            document.getElementById('view-lv-btn').innerText = "Expand Las Vegas Free Parking";
-        }
+  if(!isActive){
+    map.removeLayer(poiLayers[cat]);
+    return;
+  }
 
-        function renderParkingSpots() {
-            freeParkingSpots.forEach(spot => {
-                const markerIcon = L.divIcon({
-                    className: 'parking-spot-marker',
-                    html: 'P',
-                    iconSize: [28, 28],
-                    iconAnchor: [14, 14]
-                });
+  if(!poiLoaded[cat]){
+    document.getElementById('statusText').innerText = `Loading ${cat}s near this view…`;
+    try{
+      await loadPOICategory(cat);
+      poiLoaded[cat] = true;
+    }catch(e){
+      document.getElementById('statusText').innerText = `Could not load ${cat}s right now.`;
+      chip.classList.remove('active');
+      return;
+    }
+  }
 
-                const marker = L.marker([spot.lat, spot.lng], { icon: markerIcon })
-                    .addTo(map)
-                    .bindPopup(`
-                        <div style="min-width: 180px;">
-                            <b style="color:#0d47a1; font-size:1rem;">${spot.name}</b><br>
-                            <span style="font-size:0.8rem; color:#666;">${spot.type}</span><br>
-                            <div style="margin-top:6px; padding:6px; background:#f0fdf4; border-radius:4px;">
-                                <span style="color:#2e7d32; font-weight:bold;">${spot.status}</span><br>
-                                <span style="font-size:0.85rem;">Available Spots: <b id="popup-count-${spot.id}">${spot.openSpots}</b> / ${spot.totalSpots}</span>
-                            </div>
-                        </div>
-                    `);
+  poiLayers[cat].addTo(map);
+  document.getElementById('statusText').innerText = `Showing ${cat}s near this view.`;
+}
 
-                parkingMarkers.push(marker);
-            });
-        }
+/* -------- simulated (clearly-labeled) availability drift -------- */
+setInterval(() => {
+  freeParkingSpots.forEach(spot => {
+    spot.pctFull = Math.min(95, Math.max(10, spot.pctFull + (Math.random()*10 - 5)));
+  });
+  renderSidebar();
+}, 6000);
 
-        function renderSidebarList() {
-            const container = document.getElementById('parking-list-container');
-            container.innerHTML = freeParkingSpots.map(spot => `
-                <div class="spot-card" onclick="focusOnSpot(${spot.lat}, ${spot.lng})">
-                    <div class="spot-title">${spot.name}</div>
-                    <div class="spot-info">
-                        <span>${spot.type}</span>
-                        <span class="spot-count" id="card-count-${spot.id}">${spot.openSpots} spots available</span>
-                    </div>
-                </div>
-            `).join('');
-        }
-
-        function focusOnSpot(lat, lng) {
-            map.flyTo([lat, lng], 16, { duration: 1.0 });
-        }
-
-        function clearParkingMarkers() {
-            parkingMarkers.forEach(m => map.removeLayer(m));
-            parkingMarkers = [];
-        }
-
-        function handleSearchKeyPress(e) {
-            if (e.key === 'Enter') searchManualLocation();
-        }
-
-        function searchManualLocation() {
-            const query = document.getElementById('manual-location-input').value.trim();
-            if (!query) return;
-
-            logger.innerHTML = `🔍 Searching location: <b>"${query}"</b>...`;
-
-            fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}`)
-                .then(res => res.json())
-                .then(data => {
-                    if (data && data.length > 0) {
-                        const lat = parseFloat(data[0].lat);
-                        const lon = parseFloat(data[0].lon);
-                        const displayName = data[0].display_name.split(',')[0];
-
-                        placeUserMarker(lat, lon, `📍 ${displayName}`);
-                        map.flyTo([lat, lon], 13, { duration: 1.5 });
-                        logger.innerHTML = `📍 <b>Location Set:</b> ${displayName}. Click Las Vegas View to check parking nearby.`;
-                    } else {
-                        logger.innerHTML = `⚠️ Location not found. Please try a different address or ZIP code.`;
-                    }
-                })
-                .catch(err => {
-                    logger.innerHTML = `⚠️ Error finding location. Please try again.`;
-                });
-        }
-
-        function placeUserMarker(lat, lng, popupText) {
-            if (userMarker) {
-                userMarker.setLatLng([lat, lng]);
-            } else {
-                userMarker = L.marker([lat, lng], { icon: userIcon }).addTo(map);
-            }
-            userMarker.bindPopup(`<b>${popupText}</b>`).openPopup();
-        }
-
-        function initRealTimeUserLocation() {
-            if (!navigator.geolocation) { 
-                logger.innerHTML = "❌ Geolocation unsupported. Type your city/ZIP above to set location."; 
-                return; 
-            }
-
-            if (watchId !== null) navigator.geolocation.clearWatch(watchId);
-
-            watchId = navigator.geolocation.watchPosition(
-                handlePositionSuccess,
-                handlePositionError,
-                { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 }
-            );
-        }
-
-        function handlePositionSuccess(pos) {
-            const lat = pos.coords.latitude;
-            const lng = pos.coords.longitude;
-            const accuracy = pos.coords.accuracy;
-
-            placeUserMarker(lat, lng, "📍 Your Real-Time Location");
-
-            if (accuracyCircle) {
-                accuracyCircle.setLatLng([lat, lng]);
-                accuracyCircle.setRadius(accuracy || 0);
-            } else if (accuracy) {
-                accuracyCircle = L.circle([lat, lng], {
-                    radius: accuracy,
-                    color: '#0d47a1',
-                    fillColor: '#0d47a1',
-                    fillOpacity: 0.12,
-                    weight: 1
-                }).addTo(map);
-            }
-
-            if (activeViewMode === 'US') {
-                logger.innerHTML = `📍 <b>GPS active!</b> Pinned on national overview map. Or type a city/ZIP in the search box.`;
-            }
-        }
-
-        function handlePositionError(err) {
-            logger.innerHTML = `⚠️ <b>GPS Permission Denied / Unavailable.</b> Type your address or ZIP code in the box above to set your location manually!`;
-        }
-
-        function reCenterUserLocation() {
-            if (userMarker) {
-                const pos = userMarker.getLatLng();
-                map.flyTo([pos.lat, pos.lng], 14, { duration: 1.2 });
-            } else {
-                initRealTimeUserLocation();
-            }
-        }
-
-        function startSimulatedRealTimeUpdates() {
-            setInterval(() => {
-                freeParkingSpots.forEach(spot => {
-                    const delta = Math.floor(Math.random() * 5) - 2;
-                    spot.openSpots = Math.max(5, Math.min(spot.totalSpots, spot.openSpots + delta));
-
-                    const cardElem = document.getElementById(`card-count-${spot.id}`);
-                    if (cardElem) cardElem.innerText = `${spot.openSpots} spots available`;
-
-                    const popupElem = document.getElementById(`popup-count-${spot.id}`);
-                    if (popupElem) popupElem.innerText = spot.openSpots;
-                });
-            }, 4000);
-        }
-
-        // --- REAL VISITOR ONLY TRACKING & HIDDEN ADMIN SYSTEM ---
-        let visitorLogs = [];
-
-        function initVisitorTracking() {
-            const storedLogs = localStorage.getItem('parklv_visitor_logs');
-            if (storedLogs) {
-                try { visitorLogs = JSON.parse(storedLogs); } catch(e) { visitorLogs = []; }
-            }
-
-            // Dual IP Lookup System (ipapi.co with fallback to ipwho.is)
-            fetch('https://ipapi.co/json/')
-                .then(res => {
-                    if (!res.ok) throw new Error('ipapi rate limit or block');
-                    return res.json();
-                })
-                .then(data => {
-                    if (data && data.city && data.region_code) {
-                        recordVisitorLog(`${data.city}, ${data.region_code}`, data.ip || 'Unknown IP');
-                    } else {
-                        throw new Error('Invalid format');
-                    }
-                })
-                .catch(() => {
-                    fetch('https://ipwho.is/')
-                        .then(res => res.json())
-                        .then(data => {
-                            if (data && data.success) {
-                                recordVisitorLog(`${data.city}, ${data.region_code || data.region}`, data.ip);
-                            } else {
-                                recordVisitorLog("Direct Visitor", "Hidden/Blocked");
-                            }
-                        })
-                        .catch(() => {
-                            recordVisitorLog("Direct Visitor", "Hidden/Blocked");
-                        });
-                });
-        }
-
-        function recordVisitorLog(cityState, ip) {
-            const now = new Date();
-            const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-            const dayName = days[now.getDay()];
-            const dateStr = `${now.getMonth() + 1}/${now.getDate()}/${now.getFullYear()} (${dayName})`;
-            const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-
-            const newEntry = {
-                timestamp: now.getTime(),
-                dateDay: dateStr,
-                time: timeStr,
-                location: cityState,
-                ip: ip
-            };
-
-            visitorLogs.unshift(newEntry);
-            if (visitorLogs.length > 100) visitorLogs.pop(); // Keep top 100 entries
-
-            localStorage.setItem('parklv_visitor_logs', JSON.stringify(visitorLogs));
-            if (document.getElementById('adminModal').style.display === 'flex') {
-                renderAdminTable();
-            }
-        }
-
-        function promptAdminPortal() {
-            const password = prompt("ENTER ADMIN PASSWORD:");
-            if (password === "parklv2026") {
-                document.getElementById('adminModal').style.display = 'flex';
-                renderAdminTable();
-            } else if (password !== null) {
-                alert("Access Denied: Incorrect Password.");
-            }
-        }
-
-        function closeAdminPortal() {
-            document.getElementById('adminModal').style.display = 'none';
-        }
-
-        function renderAdminTable() {
-            const tbody = document.getElementById('visitorTableBody');
-            document.getElementById('totalVisitorCount').innerText = visitorLogs.length;
-            document.getElementById('activeTodayCount').innerText = visitorLogs.length;
-
-            if (visitorLogs.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:20px; color:#888;">No visitor activity recorded.</td></tr>`;
-                return;
-            }
-
-            tbody.innerHTML = visitorLogs.map(log => `
-                <tr>
-                    <td><b>${log.dateDay}</b></td>
-                    <td>${log.time}</td>
-                    <td><b>${log.location}</b></td>
-                    <td style="font-family:monospace; color:#0d47a1;">${log.ip}</td>
-                </tr>
-            `).join('');
-        }
-
-        function resetVisitorCounter() {
-            if (confirm("Are you sure you want to clear all visitor counts and reset tracking logs?")) {
-                visitorLogs = [];
-                localStorage.removeItem('parklv_visitor_logs');
-                renderAdminTable();
-            }
-        }
-    </script>
-    <footer style="text-align: center; padding: 20px; font-size: 0.85rem; color: #0d47a1; margin-top: auto;">
-        <p style="margin-bottom: 6px; font-weight: 700;">ParkLV.com is an independent real-time parking information service.</p>
-        <p>
-            <a href="privacy.html" style="color: #0d47a1; font-weight: bold;">Privacy Policy</a> | 
-            <a href="terms.html" style="color: #0d47a1; font-weight: bold;">Terms of Service</a> | 
-            <a href="javascript:void(0);" onclick="promptAdminPortal()" style="color: #0d47a1; text-decoration: none; font-weight: normal; opacity: 0.8;">Admin Portal</a>
-        </p>
-        <p style="margin-top: 6px;">&copy; 2026 ParkLV.com - All Rights Reserved</p>
-    </footer>
+renderParkingMarkers();
+renderSidebar();
+</script>
 </body>
 </html>
