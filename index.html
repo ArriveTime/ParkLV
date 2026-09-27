@@ -6,7 +6,7 @@
 <title>ParkLV — Free Parking, Las Vegas</title>
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Orbitron:wght@600;700;800&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 
 <style>
@@ -41,14 +41,40 @@ header{
   align-items:center;
   gap:14px;
   border-bottom:1px solid var(--line);
-  background:linear-gradient(180deg,#0e1730,#0b1220);
+  background:
+    linear-gradient(180deg,#0e1730,#0b1220),
+    repeating-linear-gradient(90deg, rgba(244,196,48,.03) 0px, rgba(244,196,48,.03) 1px, transparent 1px, transparent 40px);
+  position:relative;
 }
 .mark{
   width:42px;height:42px;border-radius:12px;
   background:radial-gradient(circle at 30% 30%,var(--gold),var(--gold-soft));
   display:flex;align-items:center;justify-content:center;
   font-weight:700;color:var(--ink);font-size:1.2rem;flex:none;
+  box-shadow:0 0 18px rgba(244,196,48,.55), 0 0 36px rgba(244,196,48,.25);
+  animation:mark-pulse 3s ease-in-out infinite;
 }
+@keyframes mark-pulse{
+  0%,100%{box-shadow:0 0 18px rgba(244,196,48,.55), 0 0 36px rgba(244,196,48,.25);}
+  50%{box-shadow:0 0 26px rgba(244,196,48,.8), 0 0 52px rgba(244,196,48,.4);}
+}
+.live-pill{
+  font-family:'Orbitron',sans-serif;
+  font-size:.62rem;
+  letter-spacing:1.2px;
+  color:var(--teal);
+  border:1px solid var(--teal);
+  padding:4px 10px;
+  border-radius:999px;
+  margin-left:auto;
+  display:flex;
+  align-items:center;
+  gap:6px;
+  white-space:nowrap;
+  box-shadow:0 0 10px rgba(47,224,200,.25);
+}
+.live-pill .dot{width:6px;height:6px;border-radius:50%;background:var(--teal);animation:blink 1.6s infinite;}
+@keyframes blink{0%,100%{opacity:1;}50%{opacity:.3;}}
 .brand-text h1{
   font-size:clamp(1.5rem,4.5vw,2.1rem);
   font-weight:700;
@@ -98,7 +124,8 @@ header{
 }
 .btn:hover{opacity:.92;}
 .btn:active{transform:translateY(1px);}
-.btn-gold{background:var(--gold);color:var(--ink);}
+.btn-gold{background:var(--gold);color:var(--ink);box-shadow:0 0 16px rgba(244,196,48,.4);}
+.btn-gold:hover{box-shadow:0 0 24px rgba(244,196,48,.6);}
 .btn-ghost{background:transparent;color:var(--text);border:1px solid var(--line);}
 
 /* ---------- category chips ---------- */
@@ -127,6 +154,7 @@ header{
   border-color:var(--gold);
   color:var(--gold);
   background:rgba(244,196,48,.08);
+  box-shadow:0 0 12px rgba(244,196,48,.3);
 }
 .chip .dot{width:7px;height:7px;border-radius:50%;background:currentColor;}
 
@@ -186,6 +214,7 @@ header{
   border:1px solid var(--line);
   height:600px;
   position:relative;
+  box-shadow:0 0 30px rgba(47,224,200,.08), 0 8px 30px rgba(0,0,0,.4);
 }
 #map{height:100%;width:100%;}
 
@@ -212,6 +241,7 @@ header{
   flex-direction:column;
   gap:14px;
   max-height:600px;
+  box-shadow:0 0 30px rgba(244,196,48,.06), 0 8px 30px rgba(0,0,0,.4);
 }
 .sidebar h2{font-size:1rem;font-weight:600;}
 .sidebar .status{font-size:.82rem;color:var(--muted);line-height:1.5;}
@@ -322,6 +352,25 @@ footer a{color:var(--gold-soft);text-decoration:none;font-weight:600;}
 }
 .nav-step-row{font-size:.78rem;color:var(--muted);padding:4px 0;border-bottom:1px solid rgba(255,255,255,.05);}
 .nav-step-row.current{color:var(--teal);font-weight:600;}
+
+/* ---------- admin stats modal ---------- */
+.admin-modal-overlay{
+  display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);
+  z-index:9999;align-items:center;justify-content:center;padding:20px;
+}
+.admin-modal-overlay.open{display:flex;}
+.admin-modal-content{
+  background:#fff;color:#222;width:100%;max-width:420px;border-radius:14px;
+  padding:24px;border:3px solid var(--gold);box-shadow:0 10px 40px rgba(0,0,0,.5);
+}
+.admin-header{display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #eee;padding-bottom:12px;margin-bottom:14px;}
+.admin-title{font-size:1.15rem;font-weight:800;color:var(--ink);}
+.btn-close-modal{background:#d32f2f;color:#fff;border:none;padding:6px 14px;border-radius:6px;font-weight:700;cursor:pointer;}
+.admin-stats-summary{display:flex;gap:12px;margin-bottom:14px;}
+.stat-card-box{flex:1;background:#f4f6fb;border:1px solid #dde5f5;border-radius:10px;padding:14px;text-align:center;}
+.stat-card-num{font-size:1.8rem;font-weight:900;color:var(--ink);}
+.stat-card-lbl{font-size:.72rem;text-transform:uppercase;color:#777;font-weight:700;margin-top:2px;}
+.btn-reset-counter{background:var(--ink);color:#fff;border:none;padding:10px 16px;border-radius:8px;font-weight:700;cursor:pointer;margin-top:14px;}
 </style>
 </head>
 <body>
@@ -332,6 +381,7 @@ footer a{color:var(--gold-soft);text-decoration:none;font-weight:600;}
     <h1>ParkLV.com</h1>
     <p>Park Fast. Park Free. Park LV.</p>
   </div>
+  <span class="live-pill"><span class="dot"></span>LIVE MAP</span>
 </header>
 
 <div class="dest-bar">
@@ -359,16 +409,36 @@ footer a{color:var(--gold-soft);text-decoration:none;font-weight:600;}
     <div class="status" id="statusText">Type a destination above, or use your location, to sort these by distance.</div>
     <div class="spot-list" id="spotList"></div>
     <div class="disclaimer">
-      Availability percentages are estimated from typical patterns for each garage, not a live sensor feed. Always confirm current parking policy with the venue. Straight-line distances shown; actual driving distance may differ. Map data © <a href="https://www.openstreetmap.org/copyright" style="color:var(--gold-soft)">OpenStreetMap</a> contributors.
+      Availability percentages are estimated from typical patterns for each garage, not a live sensor feed. Always confirm current parking policy with the venue. Directions are generated automatically and may not reflect current road closures, construction, or traffic laws — always follow posted signage and never interact with this app while driving. Your location is used only in your browser to calculate directions and is not stored or sent to us. Map data © <a href="https://www.openstreetmap.org/copyright" style="color:var(--gold-soft)">OpenStreetMap</a> contributors. Routing by OSRM, search by Nominatim.
     </div>
   </div>
 </div>
 
 <footer>
-  <p>ParkLV.com is an independent parking information service and is not affiliated with any casino or venue named.</p>
-  <p style="margin-top:6px;"><a href="privacy.html">Privacy Policy</a> · <a href="terms.html">Terms of Service</a></p>
-  <p style="margin-top:6px;">&copy; 2026 ParkLV.com</p>
+  <p>ParkLV.com is an independent parking information service and is not affiliated with any casino, hotel, or venue named on this site. Not a substitute for official parking signage or venue policy.</p>
+  <p style="margin-top:6px;"><a href="privacy.html">Privacy Policy</a> · <a href="terms.html">Terms of Service</a> · <a href="javascript:void(0);" onclick="promptAdminStats()" style="color:var(--muted);opacity:.6;font-weight:400;">Site Stats</a></p>
+  <p style="margin-top:6px;">&copy; 2026 ParkLV.com · This site records only an aggregate visit count — no personal data, IP addresses, or location history are collected or stored.</p>
 </footer>
+
+<div class="admin-modal-overlay" id="adminModal">
+  <div class="admin-modal-content">
+    <div class="admin-header">
+      <div class="admin-title">📊 Site Traffic</div>
+      <button class="btn-close-modal" onclick="closeAdminStats()">Close</button>
+    </div>
+    <div class="admin-stats-summary">
+      <div class="stat-card-box">
+        <div class="stat-card-num" id="totalVisitCount">—</div>
+        <div class="stat-card-lbl">Total Page Visits</div>
+      </div>
+    </div>
+    <p style="font-size:.78rem;color:#666;line-height:1.5;">
+      This counts total page loads only, via a free public counter service — no IP addresses, locations, or per-visitor records are collected or stored anywhere.
+      Because this site has no backend server, this password gate is a light deterrent for casual visitors, not real security — don't rely on it to protect sensitive information.
+    </p>
+    <button class="btn-reset-counter" onclick="refreshAdminStats()">Refresh Count</button>
+  </div>
+</div>
 
 <div id="navPanel">
   <div class="nav-top">
@@ -529,24 +599,40 @@ function useMyLocation(){
 }
 
 /* -------- venue layers (casinos / restaurants / nightlife / hotels) -------- */
+const OVERPASS_ENDPOINTS = [
+  'https://overpass-api.de/api/interpreter',
+  'https://overpass.kumi.systems/api/interpreter',
+  'https://overpass.openstreetmap.ru/api/interpreter'
+];
+
 async function loadPOICategory(cat){
   const center = map.getCenter();
   const query = `[out:json][timeout:25];(${overpassTag[cat]}(around:2500,${center.lat},${center.lng}););out body 40;`;
-  const res = await fetch('https://overpass-api.de/api/interpreter', {
-    method:'POST',
-    body:'data=' + encodeURIComponent(query)
-  });
-  if(!res.ok) throw new Error('Venue lookup failed');
-  const data = await res.json();
   const style = poiStyle[cat];
+
+  let lastError = null;
+  let data = null;
+
+  for(const endpoint of OVERPASS_ENDPOINTS){
+    try{
+      const res = await fetch(endpoint, { method:'POST', body:'data=' + encodeURIComponent(query) });
+      if(!res.ok) throw new Error(`Server returned ${res.status}`);
+      data = await res.json();
+      break;
+    }catch(e){
+      lastError = e;
+      continue;
+    }
+  }
+
+  if(!data) throw new Error(lastError ? lastError.message : 'All venue-data servers are unavailable.');
 
   (data.elements || []).filter(el => el.tags && el.tags.name).forEach(el => {
     const icon = L.divIcon({
       className:'marker-poi',
-      html:style.icon,
+      html:`<div style="width:26px;height:26px;border-radius:50%;background:${style.color};display:flex;align-items:center;justify-content:center;border:2px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.4);font-size:13px;">${style.icon}</div>`,
       iconSize:[26,26],
-      iconAnchor:[13,13],
-      style:`background:${style.color};`
+      iconAnchor:[13,13]
     });
     L.marker([el.lat, el.lon], { icon: icon })
       .addTo(poiLayers[cat])
@@ -606,7 +692,7 @@ function speakInstruction(text){
   document.getElementById('navInstruction').innerText = text;
   if(voiceMuted || !('speechSynthesis' in window)) return;
   window.speechSynthesis.cancel();
-  window.speechSynthesis.speak(new SpeechSynthesisUtterance(text));
+  setTimeout(() => window.speechSynthesis.speak(new SpeechSynthesisUtterance(text)), 60);
 }
 
 function toggleMute(){
@@ -682,6 +768,21 @@ function renderNavSteps(){
 
 async function startNavigation(spotId){
   stopNavigation();
+
+  /*
+     Mobile browsers (especially iOS Safari) only allow
+     speech synthesis when it's triggered directly by a
+     user tap. If we wait until after the location/route
+     awaits below, the tap is "too old" and audio is
+     silently blocked. Priming it here, synchronously,
+     unlocks audio for the rest of this navigation session.
+  */
+
+  if('speechSynthesis' in window){
+    const unlock = new SpeechSynthesisUtterance(' ');
+    unlock.volume = 0.01;
+    window.speechSynthesis.speak(unlock);
+  }
 
   const spot = freeParkingSpots.find(s => s.id === spotId);
   if(!spot) return;
@@ -772,6 +873,58 @@ setInterval(() => {
 
 renderParkingMarkers();
 renderSidebar();
+
+/* =========================================================
+   SITE VISIT COUNTER (aggregate only — no personal data)
+
+   Uses a free public counting service (CountAPI) that stores
+   nothing but a running number. No IP addresses, no location,
+   no per-visitor records — just "how many times has this page
+   loaded". Change ADMIN_PASSWORD below to something only you know.
+========================================================= */
+
+const COUNTER_NAMESPACE = 'parklv-com-site';
+const COUNTER_KEY = 'visits';
+const ADMIN_PASSWORD = 'parklv2026';
+
+function recordVisit(){
+  fetch(`https://api.countapi.xyz/hit/${COUNTER_NAMESPACE}/${COUNTER_KEY}`)
+    .then(r => r.json())
+    .catch(() => {}); // fails silently — a missed count never breaks the site
+}
+recordVisit();
+
+function promptAdminStats(){
+  const pass = prompt('Enter site stats password:');
+  if(pass === null) return;
+  if(pass !== ADMIN_PASSWORD){ alert('Incorrect password.'); return; }
+  document.getElementById('adminModal').classList.add('open');
+  refreshAdminStats();
+}
+
+function closeAdminStats(){
+  document.getElementById('adminModal').classList.remove('open');
+}
+
+function refreshAdminStats(){
+  document.getElementById('totalVisitCount').innerText = '…';
+  fetch(`https://api.countapi.xyz/get/${COUNTER_NAMESPACE}/${COUNTER_KEY}`)
+    .then(r => r.json())
+    .then(data => {
+      document.getElementById('totalVisitCount').innerText = data.value ?? '—';
+    })
+    .catch(() => {
+      document.getElementById('totalVisitCount').innerText = 'Unavailable';
+    });
+}
+
+// Optional hidden keyboard shortcut: Ctrl/Cmd + Shift + A
+document.addEventListener('keydown', e => {
+  if((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'a'){
+    e.preventDefault();
+    promptAdminStats();
+  }
+});
 </script>
 </body>
 </html>
